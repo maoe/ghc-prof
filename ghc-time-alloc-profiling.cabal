@@ -15,6 +15,7 @@ cabal-version: >=1.10
 library
   exposed-modules:
     GHC.RTS.TimeAllocProfile
+    GHC.RTS.TimeAllocProfile.Internal
     GHC.RTS.TimeAllocProfile.Parser
     GHC.RTS.TimeAllocProfile.Types
   build-depends:

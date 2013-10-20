@@ -3,6 +3,16 @@
 {-# LANGUAGE RecordWildCards #-}
 module GHC.RTS.TimeAllocProfile.Parser
   ( timeAllocProfile
+
+  , timestamp
+  , title
+  , commandLine
+  , totalTime
+  , totalAlloc
+  , hotCostCentres
+  , briefCostCentre
+  , costCentres
+  , costCentre
   ) where
 import Control.Applicative
 import Control.Monad (void)
