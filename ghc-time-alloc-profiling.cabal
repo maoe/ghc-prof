@@ -18,12 +18,25 @@ library
     GHC.RTS.TimeAllocProfile.Internal
     GHC.RTS.TimeAllocProfile.Parser
     GHC.RTS.TimeAllocProfile.Types
+    GHC.RTS.TimeAllocProfile.CostCentre
   build-depends:
-     base >=4.6 && <4.7
-   , attoparsec
-   , containers
-   , text
-   , time
-   , rosezipper
+      base >=4.6 && <4.7
+    , attoparsec
+    , containers
+    , text
+    , time
   hs-source-dirs: src
+  ghc-options: -Wall
+  default-language: Haskell2010
+
+executable dump
+  main-is: dump.hs
+  hs-source-dirs: bin
+  build-depends:
+      base
+    , attoparsec
+    , containers
+    , ghc-time-profiling-reports
+    , text
+  ghc-options: -Wall
   default-language: Haskell2010

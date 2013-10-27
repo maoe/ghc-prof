@@ -1,8 +1,10 @@
+{-# LANGUAGE RecordWildCards #-}
 module GHC.RTS.TimeAllocProfile.Types where
-import Data.Ratio (Ratio)
+import Data.IntMap (IntMap)
+import Data.Map (Map)
+import Data.Monoid (mempty)
 import Data.Text (Text)
 import Data.Time (DiffTime, LocalTime)
-import Data.Tree (Tree)
 
 data TimeAllocProfile = TimeAllocProfile
   { profileTimestamp :: LocalTime
@@ -10,7 +12,7 @@ data TimeAllocProfile = TimeAllocProfile
   , profileTotalTime :: TotalTime
   , profileTotalAlloc :: TotalAlloc
   , profileHotCostCentres :: [BriefCostCentre]
-  , profileCostCentres :: Tree CostCentre
+  , profileCostCentreTree :: CostCentreTree
   } deriving Show
 
 data TotalTime = TotalTime
@@ -36,7 +38,7 @@ data BriefCostCentre = BriefCostCentre
 data CostCentre = CostCentre
   { costCentreName :: Text
   , costCentreModule :: Text
-  , costCentreNo :: Int
+  , costCentreNo :: CostCentreNo
   , costCentreEntries :: Integer
   , costCentreIndTime :: Double
   , costCentreIndAlloc :: Double
@@ -44,4 +46,33 @@ data CostCentre = CostCentre
   , costCentreInhAlloc :: Double
   , costCentreTicks :: Maybe Integer
   , costCentreBytes :: Maybe Integer
+  } deriving Show
+
+type CostCentreNo = Int
+
+data CostCentreTree = CostCentreTree
+  { costCentreNodes :: IntMap CostCentre
+  , costCentreParents :: IntMap CostCentreNo
+  , costCentreChildren :: IntMap [CostCentreNo]
+  , costCentreCallSites :: Map (Text, Text) [CostCentreNo]
+  } deriving Show
+
+emptyCostCentreTree :: CostCentreTree
+emptyCostCentreTree = CostCentreTree
+  { costCentreNodes = mempty
+  , costCentreParents = mempty
+  , costCentreChildren = mempty
+  , costCentreCallSites = mempty
+  }
+
+data CallSite = CallSite
+  { callSiteName :: Text
+  , callSiteModule :: Text
+  , callSiteEntries :: Integer
+  , callSiteIndTime :: Double
+  , callSiteIndAlloc :: Double
+  , callSiteInhTime :: Double
+  , callSiteInhAlloc :: Double
+  , callSiteTicks :: Maybe Integer
+  , callSiteBytes :: Maybe Integer
   } deriving Show
