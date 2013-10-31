@@ -19,7 +19,7 @@ import Control.Applicative
 import Control.Monad (void)
 import Data.Char (isSpace)
 import Data.Foldable (asum, foldl')
-import Data.Sequence (Seq, ViewR(..), (><), (|>))
+import Data.Sequence (Seq, (><), (|>))
 import Data.Text (Text)
 import Data.Time
 import qualified Data.IntMap as IntMap
@@ -182,10 +182,11 @@ buildTree = snd . foldl' go (Seq.empty, emptyCostCentreTree)
       :: (TreePath, CostCentreTree)
       -> (Level, CostCentre)
       -> (TreePath, CostCentreTree)
-    go (treePath, tree) (level, node) = case Seq.viewr treePath of
-      EmptyR -> (treePath', tree')
-        where
-          tree' = CostCentreTree
+    go (treePath, tree) (level, node) = (treePath', tree')
+      where
+        !treePath' = Seq.take level treePath |> costCentreNo node
+        !tree' = if Seq.length treePath == 0
+          then CostCentreTree
             { costCentreNodes = IntMap.singleton (costCentreNo node) node
             , costCentreParents = IntMap.empty
             , costCentreChildren = IntMap.empty
@@ -193,10 +194,7 @@ buildTree = snd . foldl' go (Seq.empty, emptyCostCentreTree)
                 (costCentreName node, costCentreModule node)
                 Seq.empty
             }
-          treePath' = Seq.singleton (costCentreNo node)
-      parents :> parent -> (treePath', tree')
-        where
-          tree' = CostCentreTree
+          else CostCentreTree
             { costCentreNodes = IntMap.insert (costCentreNo node) node
                 (costCentreNodes tree)
             , costCentreParents = IntMap.insert (costCentreNo node) parent
@@ -210,10 +208,8 @@ buildTree = snd . foldl' go (Seq.empty, emptyCostCentreTree)
                 (Seq.singleton (costCentreNo node))
                 (costCentreCallSites tree)
             }
-          treePath'
-            | level > Seq.length treePath = treePath |> costCentreNo node
-            | level < Seq.length treePath = parents
-            | otherwise = treePath
+            where
+              parent = Seq.index treePath (level - 1)
 
 howMany :: Parser a -> Parser Int
 howMany p = loop 0

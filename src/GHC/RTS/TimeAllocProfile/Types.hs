@@ -52,10 +52,10 @@ data CostCentre = CostCentre
 type CostCentreNo = Int
 
 data CostCentreTree = CostCentreTree
-  { costCentreNodes :: IntMap CostCentre
-  , costCentreParents :: IntMap CostCentreNo
-  , costCentreChildren :: IntMap (Seq CostCentre)
-  , costCentreCallSites :: Map (Text, Text) (Seq CostCentreNo)
+  { costCentreNodes :: !(IntMap CostCentre)
+  , costCentreParents :: !(IntMap CostCentreNo)
+  , costCentreChildren :: !(IntMap (Seq CostCentre))
+  , costCentreCallSites :: !(Map (Text, Text) (Seq CostCentreNo))
   } deriving Show
 
 emptyCostCentreTree :: CostCentreTree
