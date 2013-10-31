@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Main where
 import Control.Applicative ((<$>))
 import Data.Tree (drawTree)
@@ -29,6 +30,17 @@ makeCCName :: CostCentre -> String
 makeCCName cc = T.unpack (costCentreModule cc)
   ++ "."
   ++ T.unpack (costCentreName cc)
+  ++ ":"
+  ++ show (costCentreNo cc)
+  ++ " ("
+  ++ show (costCentreInhTime cc)
+  ++ ","
+  ++ show (costCentreIndTime cc)
+  ++ ","
+  ++ show (costCentreInhAlloc cc)
+  ++ ","
+  ++ show (costCentreIndAlloc cc)
+  ++ ")"
 
 makeCSName :: CallSite -> String
 makeCSName site = T.unpack (callSiteModule site)
