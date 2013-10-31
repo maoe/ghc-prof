@@ -66,14 +66,21 @@ emptyCostCentreTree = CostCentreTree
   , costCentreCallSites = mempty
   }
 
+data Callee = Callee
+  { calleeName :: Text
+  , calleeModule :: Text
+  , calleeEntries :: Integer
+  , calleeTime :: Double
+  , calleeAlloc :: Double
+  , calleeTicks :: Maybe Integer
+  , calleeBytes :: Maybe Integer
+  } deriving Show
+
 data CallSite = CallSite
-  { callSiteName :: !Text
-  , callSiteModule :: !Text
-  , callSiteEntries :: !Integer
-  , callSiteIndTime :: !Double
-  , callSiteIndAlloc :: !Double
-  , callSiteInhTime :: !Double
-  , callSiteInhAlloc :: !Double
-  , callSiteTicks :: !(Maybe Integer)
-  , callSiteBytes :: !(Maybe Integer)
+  { callSiteCostCentre :: CostCentre
+  , callSiteContribEntries :: !Integer
+  , callSiteContribTime :: !Double
+  , callSiteContribAlloc :: !Double
+  , callSiteContribTicks :: !(Maybe Integer)
+  , callSiteContribBytes :: !(Maybe Integer)
   } deriving Show

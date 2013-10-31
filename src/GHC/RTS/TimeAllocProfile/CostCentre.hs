@@ -12,8 +12,11 @@ import Control.Arrow ((&&&))
 import Data.Foldable (asum)
 import Data.Function (on)
 import Data.Maybe (listToMaybe)
+import Data.Sequence (Seq)
 import Data.Text (Text)
+import Data.Traversable (mapM)
 import Data.Tree (Tree)
+import Prelude hiding (mapM)
 import qualified Data.Foldable as Fold
 import qualified Data.IntMap.Strict as IntMap
 import qualified Data.Map.Strict as Map
@@ -37,7 +40,11 @@ profileCostCentresOrderBy
 profileCostCentresOrderBy sortKey =
   buildCostCentresOrderBy sortKey . profileCostCentreTree
 
-profileCallSites :: Text -> Text -> TimeAllocProfile -> Maybe (Tree CallSite)
+profileCallSites
+  :: Text
+  -> Text
+  -> TimeAllocProfile
+  -> Maybe (Callee, Seq CallSite)
 profileCallSites = profileCallSitesOrderBy sortKey
   where
     sortKey =
@@ -50,7 +57,7 @@ profileCallSitesOrderBy
   -> Text
   -> Text
   -> TimeAllocProfile
-  -> Maybe (Tree CallSite)
+  -> Maybe (Callee, Seq CallSite)
 profileCallSitesOrderBy sortKey name modName =
   buildCallSitesOrderBy sortKey name modName . profileCostCentreTree
 
@@ -61,7 +68,7 @@ buildCostCentresOrderBy
   -> Maybe (Tree CostCentre)
 buildCostCentresOrderBy sortKey CostCentreTree {..} = do
   -- Invariant:
-  --   The root node (MAIN.MAIN) has the least cost centre ID
+  --   The root node (MAIN.MAIN) should have the least cost centre ID
   rootKey <- listToMaybe $ IntMap.keys costCentreNodes
   Tree.unfoldTreeM build rootKey
   where
@@ -79,57 +86,43 @@ buildCallSitesOrderBy
   => (CostCentre -> a)
   -- ^ Sorting key function
   -> Text
-  -- ^ Cost-cetnre name
+  -- ^ Cost-centre name
   -> Text
   -- ^ Module name
   -> CostCentreTree
-  -> Maybe (Tree CallSite)
-buildCallSitesOrderBy sortKey name modName CostCentreTree {..} =
-  Tree.Node <$> callee <*> callSites
+  -> Maybe (Callee, Seq CallSite)
+buildCallSitesOrderBy sortKey name modName tree@CostCentreTree {..} =
+  (,) <$> callee <*> callSites
   where
     lookupCallees = Map.lookup (name, modName) costCentreCallSites
     callee = do
       callees <- lookupCallees
-      return $ buildCallSite name modName (Fold.toList callees)
+      return $ buildCallee name modName callees
     callSites = do
       callees <- lookupCallees
-      Tree.unfoldForestM build $
-        map (\node -> IntMap.lookup (costCentreNo node) costCentreParents)
-          (Fold.toList $ Seq.unstableSortBy (flip compare `on` sortKey) callees)
-      where
-        build Nothing = do
-          rootKey <- listToMaybe $ IntMap.keys costCentreNodes
-          root <- IntMap.lookup rootKey costCentreNodes
-          return (costCentreToCallSite root, [])
-        build (Just callerKey) = do
-          caller <- IntMap.lookup callerKey costCentreNodes
-          return
-            ( costCentreToCallSite caller
-            , [IntMap.lookup callerKey costCentreParents]
-            )
+      mapM (buildCallSite tree) $
+        Seq.unstableSortBy (flip compare `on` sortKey) callees
 
-buildCallSite :: Text -> Text -> [CostCentre] -> CallSite
-buildCallSite name modName callees = CallSite
-  { callSiteName = name
-  , callSiteModule = modName
-  , callSiteEntries = sum $ map costCentreEntries callees
-  , callSiteIndTime = sum $ map costCentreIndTime callees
-  , callSiteIndAlloc = sum $ map costCentreIndAlloc callees
-  , callSiteInhTime = sum $ map costCentreInhTime callees
-  , callSiteInhAlloc = sum $ map costCentreInhAlloc callees
-  , callSiteTicks = asum $ map costCentreTicks callees
-  , callSiteBytes = asum $ map costCentreBytes callees
+buildCallee :: Text -> Text -> Seq CostCentre -> Callee
+buildCallee name modName callees = Callee
+  { calleeName = name
+  , calleeModule = modName
+  , calleeEntries = Fold.sum $ costCentreEntries <$> callees
+  , calleeTime = Fold.sum $ costCentreIndTime <$> callees
+  , calleeAlloc = Fold.sum $ costCentreIndAlloc <$> callees
+  , calleeTicks = asum $ costCentreTicks <$> callees
+  , calleeBytes = asum $ costCentreBytes <$> callees
   }
 
-costCentreToCallSite :: CostCentre -> CallSite
-costCentreToCallSite CostCentre {..} = CallSite
-  { callSiteName = costCentreName
-  , callSiteModule = costCentreModule
-  , callSiteEntries = costCentreEntries
-  , callSiteIndTime = costCentreIndTime
-  , callSiteIndAlloc = costCentreIndAlloc
-  , callSiteInhTime = costCentreInhTime
-  , callSiteInhAlloc = costCentreInhAlloc
-  , callSiteTicks = costCentreTicks
-  , callSiteBytes = costCentreBytes
-  }
+buildCallSite :: CostCentreTree -> CostCentre -> Maybe CallSite
+buildCallSite CostCentreTree {..} CostCentre {..} = do
+  parentNo <- IntMap.lookup costCentreNo costCentreParents
+  parent <- IntMap.lookup parentNo costCentreNodes
+  return CallSite
+    { callSiteCostCentre = parent
+    , callSiteContribEntries = costCentreEntries
+    , callSiteContribTime = costCentreIndTime
+    , callSiteContribAlloc = costCentreIndAlloc
+    , callSiteContribTicks = costCentreTicks
+    , callSiteContribBytes = costCentreBytes
+    }

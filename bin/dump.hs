@@ -20,10 +20,11 @@ main = do
   case restArgs of
     [] -> Fold.mapM_ putStrLn $ drawTree . fmap makeCCName <$> profileCostCentres prof
     name:modName:_ -> do
-      Fold.mapM_ putStrLn $ drawTree . fmap makeCSName <$> profileCallSites
-        (T.pack name)
-        (T.pack modName)
-        prof
+      case profileCallSites (T.pack name) (T.pack modName) prof of
+        Nothing -> putStrLn "failed to parse call sites"
+        Just (callee, callSites) -> do
+          print callee
+          Fold.mapM_ print callSites
     _ -> fail "Invalid parameters"
 
 makeCCName :: CostCentre -> String
@@ -42,16 +43,3 @@ makeCCName cc = T.unpack (costCentreModule cc)
   ++ show (costCentreIndAlloc cc)
   ++ ")"
 
-makeCSName :: CallSite -> String
-makeCSName site = T.unpack (callSiteModule site)
-  ++ "."
-  ++ T.unpack (callSiteName site)
-  ++ " ("
-  ++ show (callSiteInhTime site)
-  ++ ","
-  ++ show (callSiteIndTime site)
-  ++ ","
-  ++ show (callSiteInhAlloc site)
-  ++ ","
-  ++ show (callSiteIndAlloc site)
-  ++ ")"

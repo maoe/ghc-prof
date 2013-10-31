@@ -163,10 +163,7 @@ costCentre = do
       return (ticks, bytes)
 
 costCentreTree :: Parser CostCentreTree
-costCentreTree = do
-  tree <- buildTree <$> costCentreList
-  -- TODO: Check invariants
-  return tree
+costCentreTree = buildTree <$> costCentreList
   where
     costCentreList = nestedCostCentre `sepBy1` endOfLine
     nestedCostCentre = (,) <$> nestLevel <*> costCentre
