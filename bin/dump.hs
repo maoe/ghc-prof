@@ -46,3 +46,12 @@ makeCSName :: CallSite -> String
 makeCSName site = T.unpack (callSiteModule site)
   ++ "."
   ++ T.unpack (callSiteName site)
+  ++ " ("
+  ++ show (callSiteInhTime site)
+  ++ ","
+  ++ show (callSiteIndTime site)
+  ++ ","
+  ++ show (callSiteInhAlloc site)
+  ++ ","
+  ++ show (callSiteIndAlloc site)
+  ++ ")"
