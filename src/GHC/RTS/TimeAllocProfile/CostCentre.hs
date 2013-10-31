@@ -13,8 +13,10 @@ import Data.Maybe (listToMaybe)
 import Data.Text (Text)
 import Data.Traversable (forM)
 import Data.Tree (Tree)
+import qualified Data.Foldable as Fold
 import qualified Data.IntMap.Strict as IntMap
 import qualified Data.Map.Strict as Map
+import qualified Data.Sequence as Seq
 import qualified Data.Tree as Tree
 
 import GHC.RTS.TimeAllocProfile.Types
@@ -35,8 +37,10 @@ buildCostCentres CostCentreTree {..} = do
   where
     build key = do
       node <- IntMap.lookup key costCentreNodes
-      let children = maybe [] reverse $ IntMap.lookup key costCentreChildren
       return (node, children)
+      where
+          children = maybe [] (Fold.toList . Seq.reverse) $
+            IntMap.lookup key costCentreChildren
 
 buildCallSites :: Text -> Text -> CostCentreTree -> Maybe (Tree CallSite)
 buildCallSites name modName CostCentreTree {..} =
@@ -46,11 +50,11 @@ buildCallSites name modName CostCentreTree {..} =
     callee = do
       keys <- calleeKeys
       callees <- forM keys $ \key -> IntMap.lookup key costCentreNodes
-      return $ buildCallSite name modName callees
+      return $ buildCallSite name modName (Fold.toList callees)
     callSites = do
       keys <- calleeKeys
       Tree.unfoldForestM build $
-        map (\key -> IntMap.lookup key costCentreParents) keys
+        map (\key -> IntMap.lookup key costCentreParents) (Fold.toList keys)
       where
         build Nothing = do
           rootKey <- listToMaybe $ IntMap.keys costCentreNodes

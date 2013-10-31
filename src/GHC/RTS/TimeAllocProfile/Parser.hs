@@ -19,7 +19,7 @@ import Control.Applicative
 import Control.Monad (void)
 import Data.Char (isSpace)
 import Data.Foldable (asum, foldl')
-import Data.Sequence (Seq, ViewR(..), (|>))
+import Data.Sequence (Seq, ViewR(..), (><), (|>))
 import Data.Text (Text)
 import Data.Time
 import qualified Data.IntMap as IntMap
@@ -189,7 +189,9 @@ buildTree = snd . foldl' go (Seq.empty, emptyCostCentreTree)
             { costCentreNodes = IntMap.singleton (costCentreNo node) node
             , costCentreParents = IntMap.empty
             , costCentreChildren = IntMap.empty
-            , costCentreCallSites = Map.singleton (costCentreName node, costCentreModule node) []
+            , costCentreCallSites = Map.singleton
+                (costCentreName node, costCentreModule node)
+                Seq.empty
             }
           treePath' = Seq.singleton (costCentreNo node)
       parents :> parent -> (treePath', tree')
@@ -199,13 +201,13 @@ buildTree = snd . foldl' go (Seq.empty, emptyCostCentreTree)
                 (costCentreNodes tree)
             , costCentreParents = IntMap.insert (costCentreNo node) parent
                 (costCentreParents tree)
-            , costCentreChildren = IntMap.insertWith (++)
+            , costCentreChildren = IntMap.insertWith (><)
                 parent
-                [costCentreNo node]
+                (Seq.singleton (costCentreNo node))
                 (costCentreChildren tree)
-            , costCentreCallSites = Map.insertWith (++)
+            , costCentreCallSites = Map.insertWith (><)
                 (costCentreName node, costCentreModule node)
-                [costCentreNo node]
+                (Seq.singleton (costCentreNo node))
                 (costCentreCallSites tree)
             }
           treePath'

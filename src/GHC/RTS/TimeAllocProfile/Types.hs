@@ -5,6 +5,7 @@ import Data.Map (Map)
 import Data.Monoid (mempty)
 import Data.Text (Text)
 import Data.Time (DiffTime, LocalTime)
+import Data.Sequence (Seq)
 
 data TimeAllocProfile = TimeAllocProfile
   { profileTimestamp :: LocalTime
@@ -53,8 +54,8 @@ type CostCentreNo = Int
 data CostCentreTree = CostCentreTree
   { costCentreNodes :: IntMap CostCentre
   , costCentreParents :: IntMap CostCentreNo
-  , costCentreChildren :: IntMap [CostCentreNo]
-  , costCentreCallSites :: Map (Text, Text) [CostCentreNo]
+  , costCentreChildren :: IntMap (Seq CostCentreNo)
+  , costCentreCallSites :: Map (Text, Text) (Seq CostCentreNo)
   } deriving Show
 
 emptyCostCentreTree :: CostCentreTree
