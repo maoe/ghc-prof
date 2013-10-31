@@ -203,7 +203,7 @@ buildTree = snd . foldl' go (Seq.empty, emptyCostCentreTree)
                 (costCentreParents tree)
             , costCentreChildren = IntMap.insertWith (><)
                 parent
-                (Seq.singleton (costCentreNo node))
+                (Seq.singleton node)
                 (costCentreChildren tree)
             , costCentreCallSites = Map.insertWith (><)
                 (costCentreName node, costCentreModule node)

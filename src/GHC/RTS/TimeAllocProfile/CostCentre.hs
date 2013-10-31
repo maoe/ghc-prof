@@ -2,13 +2,16 @@
 {-# LANGUAGE TupleSections #-} -- for debugging
 module GHC.RTS.TimeAllocProfile.CostCentre
   ( profileCostCentres
+  , profileCostCentresOrderBy
   , profileCallSites
 
-  , buildCostCentres
+  , buildCostCentresOrderBy
   , buildCallSites
   ) where
 import Control.Applicative ((<$>), (<*>))
+import Control.Arrow ((&&&))
 import Data.Foldable (asum)
+import Data.Function (on)
 import Data.Maybe (listToMaybe)
 import Data.Text (Text)
 import Data.Traversable (forM)
@@ -22,14 +25,30 @@ import qualified Data.Tree as Tree
 import GHC.RTS.TimeAllocProfile.Types
 
 profileCostCentres :: TimeAllocProfile -> Maybe (Tree CostCentre)
-profileCostCentres = buildCostCentres . profileCostCentreTree
+profileCostCentres = profileCostCentresOrderBy sortKey
+  where
+    sortKey =
+      costCentreInhTime &&& costCentreIndTime &&&
+      costCentreInhAlloc &&& costCentreIndAlloc
+
+profileCostCentresOrderBy
+  :: Ord a
+  => (CostCentre -> a)
+  -> TimeAllocProfile
+  -> Maybe (Tree CostCentre)
+profileCostCentresOrderBy sortKey =
+  buildCostCentresOrderBy sortKey . profileCostCentreTree
 
 profileCallSites :: Text -> Text -> TimeAllocProfile -> Maybe (Tree CallSite)
 profileCallSites name modName =
   buildCallSites name modName . profileCostCentreTree
 
-buildCostCentres :: CostCentreTree -> Maybe (Tree CostCentre)
-buildCostCentres CostCentreTree {..} = do
+buildCostCentresOrderBy
+  :: Ord a
+  => (CostCentre -> a)
+  -> CostCentreTree
+  -> Maybe (Tree CostCentre)
+buildCostCentresOrderBy sortKey CostCentreTree {..} = do
   -- Invariant:
   --   The root node (MAIN.MAIN) has the least cost centre ID
   rootKey <- listToMaybe $ IntMap.keys costCentreNodes
@@ -39,8 +58,10 @@ buildCostCentres CostCentreTree {..} = do
       node <- IntMap.lookup key costCentreNodes
       return (node, children)
       where
-          children = maybe [] (Fold.toList . Seq.reverse) $
-            IntMap.lookup key costCentreChildren
+          children = maybe [] Fold.toList $ do
+            nodes <- IntMap.lookup key costCentreChildren
+            return $ costCentreNo
+                <$> Seq.unstableSortBy (flip compare `on` sortKey) nodes
 
 buildCallSites :: Text -> Text -> CostCentreTree -> Maybe (Tree CallSite)
 buildCallSites name modName CostCentreTree {..} =
