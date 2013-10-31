@@ -1,12 +1,11 @@
 {-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE TupleSections #-} -- for debugging
 module GHC.RTS.TimeAllocProfile.CostCentre
   ( profileCostCentres
   , profileCostCentresOrderBy
   , profileCallSites
 
   , buildCostCentresOrderBy
-  , buildCallSites
+  , buildCallSitesOrderBy
   ) where
 import Control.Applicative ((<$>), (<*>))
 import Control.Arrow ((&&&))
@@ -14,7 +13,6 @@ import Data.Foldable (asum)
 import Data.Function (on)
 import Data.Maybe (listToMaybe)
 import Data.Text (Text)
-import Data.Traversable (forM)
 import Data.Tree (Tree)
 import qualified Data.Foldable as Fold
 import qualified Data.IntMap.Strict as IntMap
@@ -40,8 +38,21 @@ profileCostCentresOrderBy sortKey =
   buildCostCentresOrderBy sortKey . profileCostCentreTree
 
 profileCallSites :: Text -> Text -> TimeAllocProfile -> Maybe (Tree CallSite)
-profileCallSites name modName =
-  buildCallSites name modName . profileCostCentreTree
+profileCallSites = profileCallSitesOrderBy sortKey
+  where
+    sortKey =
+      costCentreInhTime &&& costCentreIndTime &&&
+      costCentreInhAlloc &&& costCentreIndAlloc
+
+profileCallSitesOrderBy
+  :: Ord a
+  => (CostCentre -> a)
+  -> Text
+  -> Text
+  -> TimeAllocProfile
+  -> Maybe (Tree CallSite)
+profileCallSitesOrderBy sortKey name modName =
+  buildCallSitesOrderBy sortKey name modName . profileCostCentreTree
 
 buildCostCentresOrderBy
   :: Ord a
@@ -63,19 +74,28 @@ buildCostCentresOrderBy sortKey CostCentreTree {..} = do
             return $ costCentreNo
                 <$> Seq.unstableSortBy (flip compare `on` sortKey) nodes
 
-buildCallSites :: Text -> Text -> CostCentreTree -> Maybe (Tree CallSite)
-buildCallSites name modName CostCentreTree {..} =
+buildCallSitesOrderBy
+  :: Ord a
+  => (CostCentre -> a)
+  -- ^ Sorting key function
+  -> Text
+  -- ^ Cost-cetnre name
+  -> Text
+  -- ^ Module name
+  -> CostCentreTree
+  -> Maybe (Tree CallSite)
+buildCallSitesOrderBy sortKey name modName CostCentreTree {..} =
   Tree.Node <$> callee <*> callSites
   where
-    calleeKeys = Map.lookup (name, modName) costCentreCallSites
+    lookupCallees = Map.lookup (name, modName) costCentreCallSites
     callee = do
-      keys <- calleeKeys
-      callees <- forM keys $ \key -> IntMap.lookup key costCentreNodes
+      callees <- lookupCallees
       return $ buildCallSite name modName (Fold.toList callees)
     callSites = do
-      keys <- calleeKeys
+      callees <- lookupCallees
       Tree.unfoldForestM build $
-        map (\key -> IntMap.lookup key costCentreParents) (Fold.toList keys)
+        map (\node -> IntMap.lookup (costCentreNo node) costCentreParents)
+          (Fold.toList $ Seq.unstableSortBy (flip compare `on` sortKey) callees)
       where
         build Nothing = do
           rootKey <- listToMaybe $ IntMap.keys costCentreNodes

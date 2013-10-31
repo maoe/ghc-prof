@@ -205,7 +205,7 @@ buildTree = snd . foldl' go (Seq.empty, emptyCostCentreTree)
                 (costCentreChildren tree)
             , costCentreCallSites = Map.insertWith (><)
                 (costCentreName node, costCentreModule node)
-                (Seq.singleton (costCentreNo node))
+                (Seq.singleton node)
                 (costCentreCallSites tree)
             }
             where

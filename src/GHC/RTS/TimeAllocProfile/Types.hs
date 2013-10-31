@@ -55,7 +55,7 @@ data CostCentreTree = CostCentreTree
   { costCentreNodes :: !(IntMap CostCentre)
   , costCentreParents :: !(IntMap CostCentreNo)
   , costCentreChildren :: !(IntMap (Seq CostCentre))
-  , costCentreCallSites :: !(Map (Text, Text) (Seq CostCentreNo))
+  , costCentreCallSites :: !(Map (Text, Text) (Seq CostCentre))
   } deriving Show
 
 emptyCostCentreTree :: CostCentreTree
@@ -67,13 +67,13 @@ emptyCostCentreTree = CostCentreTree
   }
 
 data CallSite = CallSite
-  { callSiteName :: Text
-  , callSiteModule :: Text
-  , callSiteEntries :: Integer
-  , callSiteIndTime :: Double
-  , callSiteIndAlloc :: Double
-  , callSiteInhTime :: Double
-  , callSiteInhAlloc :: Double
-  , callSiteTicks :: Maybe Integer
-  , callSiteBytes :: Maybe Integer
+  { callSiteName :: !Text
+  , callSiteModule :: !Text
+  , callSiteEntries :: !Integer
+  , callSiteIndTime :: !Double
+  , callSiteIndAlloc :: !Double
+  , callSiteInhTime :: !Double
+  , callSiteInhAlloc :: !Double
+  , callSiteTicks :: !(Maybe Integer)
+  , callSiteBytes :: !(Maybe Integer)
   } deriving Show
