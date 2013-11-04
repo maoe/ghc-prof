@@ -4,6 +4,6 @@ module GHC.RTS.TimeAllocProfile
   , profileCostCentres
   , profileCallSites
   ) where
+import GHC.RTS.TimeAllocProfile.CostCentreTree
 import GHC.RTS.TimeAllocProfile.Parser (timeAllocProfile)
 import GHC.RTS.TimeAllocProfile.Types
-import GHC.RTS.TimeAllocProfile.CostCentre

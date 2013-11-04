@@ -1,5 +1,5 @@
 {-# LANGUAGE RecordWildCards #-}
-module GHC.RTS.TimeAllocProfile.CostCentre
+module GHC.RTS.TimeAllocProfile.CostCentreTree
   ( profileCostCentres
   , profileCostCentresOrderBy
   , profileCallSites
