@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE RecordWildCards #-}
 module GHC.RTS.TimeAllocProfile.CostCentreTree
   ( profileCostCentres
@@ -76,7 +77,7 @@ buildCostCentresOrderBy sortKey CostCentreTree {..} = do
       node <- IntMap.lookup key costCentreNodes
       return (node, children)
       where
-          children = maybe [] Fold.toList $ do
+          !children = maybe [] Fold.toList $ do
             nodes <- IntMap.lookup key costCentreChildren
             return $ costCentreNo
                 <$> Seq.unstableSortBy (flip compare `on` sortKey) nodes
@@ -95,7 +96,7 @@ buildCallSitesOrderBy sortKey name modName tree@CostCentreTree {..} =
   (,) <$> callee <*> callSites
   where
     lookupCallees = Map.lookup (name, modName) costCentreCallSites
-    callee = do
+    !callee = do
       callees <- lookupCallees
       return $ buildCallee name modName callees
     callSites = do

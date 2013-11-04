@@ -22,8 +22,8 @@ import Data.Foldable (asum, foldl')
 import Data.Sequence (Seq, (><), (|>))
 import Data.Text (Text)
 import Data.Time
-import qualified Data.IntMap as IntMap
-import qualified Data.Map as Map
+import qualified Data.IntMap.Strict as IntMap
+import qualified Data.Map.Strict as Map
 import qualified Data.Sequence as Seq
 
 import Data.Attoparsec.Text as A
@@ -130,7 +130,7 @@ briefCostCentre = BriefCostCentre
 costCentres :: Parser CostCentreTree
 costCentres = header *> skipSpace *> costCentreTree
   where
-    header = count 2 $ A.takeWhile (not . isEndOfLine) <* skipSpace
+    !header = count 2 $ A.takeWhile (not . isEndOfLine) <* skipSpace
 
 costCentre :: Parser CostCentre
 costCentre = do
@@ -184,7 +184,7 @@ buildTree = snd . foldl' go (Seq.empty, emptyCostCentreTree)
         !treePath' = Seq.take level treePath |> costCentreNo node
         !tree' = if Seq.length treePath == 0
           then CostCentreTree
-            { costCentreNodes = IntMap.singleton (costCentreNo node) node
+            { costCentreNodes = IntMap.singleton nodeNo node
             , costCentreParents = IntMap.empty
             , costCentreChildren = IntMap.empty
             , costCentreCallSites = Map.singleton
@@ -192,9 +192,9 @@ buildTree = snd . foldl' go (Seq.empty, emptyCostCentreTree)
                 Seq.empty
             }
           else CostCentreTree
-            { costCentreNodes = IntMap.insert (costCentreNo node) node
+            { costCentreNodes = IntMap.insert nodeNo node
                 (costCentreNodes tree)
-            , costCentreParents = IntMap.insert (costCentreNo node) parent
+            , costCentreParents = IntMap.insert nodeNo parent
                 (costCentreParents tree)
             , costCentreChildren = IntMap.insertWith (><)
                 parent
@@ -205,8 +205,9 @@ buildTree = snd . foldl' go (Seq.empty, emptyCostCentreTree)
                 (Seq.singleton node)
                 (costCentreCallSites tree)
             }
-            where
-              parent = Seq.index treePath (level - 1)
+          where
+            nodeNo = costCentreNo node
+            parent = Seq.index treePath (level - 1)
 
 howMany :: Parser a -> Parser Int
 howMany p = loop 0

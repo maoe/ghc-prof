@@ -23,7 +23,7 @@ data TotalTime = TotalTime
   , totalTimeProcessors :: Int
   } deriving Show
 
-data TotalAlloc = TotalAlloc
+newtype TotalAlloc = TotalAlloc
   { totalAllocBytes :: Integer
   } deriving Show
 
