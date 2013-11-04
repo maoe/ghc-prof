@@ -69,11 +69,11 @@ emptyCostCentreTree = CostCentreTree
 data Callee = Callee
   { calleeName :: Text
   , calleeModule :: Text
-  , calleeEntries :: Integer
-  , calleeTime :: Double
-  , calleeAlloc :: Double
-  , calleeTicks :: Maybe Integer
-  , calleeBytes :: Maybe Integer
+  , calleeEntries :: !Integer
+  , calleeTime :: !Double
+  , calleeAlloc :: !Double
+  , calleeTicks :: !(Maybe Integer)
+  , calleeBytes :: !(Maybe Integer)
   } deriving Show
 
 data CallSite = CallSite
