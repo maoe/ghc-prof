@@ -1,8 +1,8 @@
-name: ghc-time-profiling-reports
+name: ghc-time-alloc-prof
 version: 0.0.0
 synopsis: Library for parsing GHC time and allocation profiling reports
 description: Library for parsing GHC time and allocation profiling reports
-homepage: https://github.com/maoe/ghc-time-profiling-reports
+homepage: https://github.com/maoe/ghc-time-alloc-prof
 license: BSD3
 license-file: LICENSE
 author: Mitsutoshi Aoe
@@ -17,12 +17,25 @@ library
     GHC.RTS.TimeAllocProfile
     GHC.RTS.TimeAllocProfile.Parser
     GHC.RTS.TimeAllocProfile.Types
+    GHC.RTS.TimeAllocProfile.CostCentreTree
   build-depends:
-     base >=4.6 && <4.7
-   , attoparsec
-   , containers
-   , text
-   , time
-   , rosezipper
+      base == 4.*
+    , attoparsec
+    , containers
+    , text
+    , time
   hs-source-dirs: src
+  ghc-options: -Wall
+  default-language: Haskell2010
+
+executable dump
+  main-is: dump.hs
+  hs-source-dirs: bin
+  build-depends:
+      base
+    , attoparsec
+    , containers
+    , ghc-time-alloc-prof
+    , text
+  ghc-options: -Wall -rtsopts
   default-language: Haskell2010

@@ -1,19 +1,32 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE MultiWayIf #-}
 module GHC.RTS.TimeAllocProfile.Parser
   ( timeAllocProfile
+
+  , timestamp
+  , title
+  , commandLine
+  , totalTime
+  , totalAlloc
+  , hotCostCentres
+  , briefCostCentre
+  , costCentres
+  , costCentre
   ) where
 import Control.Applicative
 import Control.Monad (void)
 import Data.Char (isSpace)
 import Data.Foldable (asum, foldl')
+import Data.Sequence (Seq, (><), (|>))
 import Data.Text (Text)
-import Data.Tree
 import Data.Time
+import qualified Data.IntMap.Strict as IntMap
+import qualified Data.Map.Strict as Map
+import qualified Data.Sequence as Seq
 
 import Data.Attoparsec.Text as A
-import qualified Data.Tree.Zipper as Z
 
 import GHC.RTS.TimeAllocProfile.Types
 
@@ -26,13 +39,13 @@ timeAllocProfile = do
   profileTotalTime <- totalTime; skipSpace
   profileTotalAlloc <- totalAlloc; skipSpace
   profileHotCostCentres <- hotCostCentres; skipSpace
-  profileCostCentres <- costCentres; skipSpace
+  profileCostCentreTree <- costCentres; skipSpace
   endOfInput
   return TimeAllocProfile {..}
 
 timestamp :: Parser LocalTime
 timestamp = do
-  parseDayOfTheWeek; skipSpace
+  void parseDayOfTheWeek; skipSpace
   month <- parseMonth; skipSpace
   day <- parseDay; skipSpace
   tod <- parseTimeOfDay; skipSpace
@@ -66,9 +79,9 @@ commandLine = A.takeWhile $ not . isEndOfLine
 
 totalTime :: Parser TotalTime
 totalTime = do
-  string "total time  ="; skipSpace
+  void $ string "total time  ="; skipSpace
   elapsed <- rational
-  string " secs"; skipSpace
+  void $ string " secs"; skipSpace
   (ticks, resolution, processors) <- parens $ (,,)
     <$> decimal <* string " ticks @ "
     <*> picoSeconds <* string ", "
@@ -81,15 +94,17 @@ totalTime = do
     }
   where
     picoSeconds = asum
-      [ ((10^3)*) <$> decimal <* string " us"
-      , ((10^6)*) <$> decimal <* string " ms"
+      [ ((10 `pow` 3)*) <$> decimal <* string " us"
+      , ((10 `pow` 6)*) <$> decimal <* string " ms"
       ]
+    pow :: Integer -> Int -> Integer
+    pow = (^)
 
 totalAlloc :: Parser TotalAlloc
 totalAlloc = do
-  string "total alloc ="; skipSpace
+  void $ string "total alloc ="; skipSpace
   n <- groupedDecimal
-  string " bytes"; skipSpace
+  void $ string " bytes"; skipSpace
   parens $ void $ string "excludes profiling overheads"
   return TotalAlloc { totalAllocBytes = n }
   where
@@ -112,16 +127,16 @@ briefCostCentre = BriefCostCentre
   <*> optional decimal <* skipSpace -- ticks
   <*> optional decimal -- bytes
 
-costCentres :: Parser (Tree CostCentre)
+costCentres :: Parser CostCentreTree
 costCentres = header *> skipSpace *> costCentreTree
   where
-    header = count 2 $ A.takeWhile (not . isEndOfLine) <* skipSpace
+    !header = count 2 $ A.takeWhile (not . isEndOfLine) <* skipSpace
 
 costCentre :: Parser CostCentre
 costCentre = do
   name <- A.takeWhile (not . isSpace); skipSpace
   modName <- A.takeWhile (not . isSpace); skipSpace
-  number <- decimal; skipSpace
+  no <- decimal; skipSpace
   entries <- decimal; skipSpace
   indTime <- double; skipSpace
   indAlloc <- double; skipSpace
@@ -131,7 +146,7 @@ costCentre = do
   return CostCentre
     { costCentreName = name
     , costCentreModule = modName
-    , costCentreNo = number
+    , costCentreNo = no
     , costCentreEntries = entries
     , costCentreIndTime = indTime
     , costCentreIndAlloc = indAlloc
@@ -147,31 +162,52 @@ costCentre = do
       bytes <- decimal
       return (ticks, bytes)
 
-costCentreTree :: Parser (Tree CostCentre)
-costCentreTree = buildTree <$> costCentreMap >>= maybe empty pure
+costCentreTree :: Parser CostCentreTree
+costCentreTree = buildTree <$> costCentreList
   where
-    costCentreMap = nestedCostCentre `sepBy1` endOfLine
+    costCentreList = nestedCostCentre `sepBy1` endOfLine
     nestedCostCentre = (,) <$> nestLevel <*> costCentre
     nestLevel = howMany space
 
-type Zipper = Z.TreePos Z.Full
 type Level = Int
+type TreePath = Seq Level
 
-buildTree :: [(Level, a)] -> Maybe (Tree a)
-buildTree [] = Nothing
-buildTree ((lvl, t):xs) = Z.toTree <$> snd (foldl' go (lvl, Just z) xs)
+buildTree :: [(Level, CostCentre)] -> CostCentreTree
+buildTree = snd . foldl' go (Seq.empty, emptyCostCentreTree)
   where
-    z = Z.fromTree $ Node t []
     go
-      :: (Level, Maybe (Zipper a))
-      -> (Level, a)
-      -> (Level, Maybe (Zipper a))
-    go (curLvl, mzipper) a@(lvl', x)
-      | curLvl > lvl' = go (curLvl-1, mzipper >>= Z.parent) a
-      | curLvl < lvl' = case mzipper >>= Z.lastChild of
-          Nothing  -> (lvl', Z.insert (Node x []) . Z.children <$> mzipper)
-          mzipper' -> go (curLvl+1, mzipper') a
-      | otherwise = (lvl', Z.insert (Node x []) . Z.nextSpace <$> mzipper)
+      :: (TreePath, CostCentreTree)
+      -> (Level, CostCentre)
+      -> (TreePath, CostCentreTree)
+    go (treePath, tree) (level, node) = (treePath', tree')
+      where
+        !treePath' = Seq.take level treePath |> costCentreNo node
+        !tree' = if Seq.length treePath == 0
+          then CostCentreTree
+            { costCentreNodes = IntMap.singleton nodeNo node
+            , costCentreParents = IntMap.empty
+            , costCentreChildren = IntMap.empty
+            , costCentreCallSites = Map.singleton
+                (costCentreName node, costCentreModule node)
+                Seq.empty
+            }
+          else CostCentreTree
+            { costCentreNodes = IntMap.insert nodeNo node
+                (costCentreNodes tree)
+            , costCentreParents = IntMap.insert nodeNo parent
+                (costCentreParents tree)
+            , costCentreChildren = IntMap.insertWith (><)
+                parent
+                (Seq.singleton node)
+                (costCentreChildren tree)
+            , costCentreCallSites = Map.insertWith (><)
+                (costCentreName node, costCentreModule node)
+                (Seq.singleton node)
+                (costCentreCallSites tree)
+            }
+          where
+            nodeNo = costCentreNo node
+            parent = Seq.index treePath (level - 1)
 
 howMany :: Parser a -> Parser Int
 howMany p = loop 0
