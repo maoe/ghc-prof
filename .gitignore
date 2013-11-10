@@ -1,0 +1,5 @@
+.DS_Store
+/.cabal-sandbox/
+/cabal.sandbox.config
+/dist/
+/ghc-time-alloc-profiling.sublime-*
