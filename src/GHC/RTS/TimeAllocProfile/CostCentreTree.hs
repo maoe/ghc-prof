@@ -4,6 +4,7 @@ module GHC.RTS.TimeAllocProfile.CostCentreTree
   ( profileCostCentres
   , profileCostCentresOrderBy
   , profileCallSites
+  , profileCallSitesOrderBy
 
   , buildCostCentresOrderBy
   , buildCallSitesOrderBy
@@ -26,6 +27,7 @@ import qualified Data.Tree as Tree
 
 import GHC.RTS.TimeAllocProfile.Types
 
+-- | Build a tree of cost-centres from a profiling report.
 profileCostCentres :: TimeAllocProfile -> Maybe (Tree CostCentre)
 profileCostCentres = profileCostCentresOrderBy sortKey
   where
@@ -33,17 +35,25 @@ profileCostCentres = profileCostCentresOrderBy sortKey
       costCentreInhTime &&& costCentreIndTime &&&
       costCentreInhAlloc &&& costCentreIndAlloc
 
+-- | Build a tree of cost-centres from a profiling report.
+-- Nodes are sorted by the given key function for each level
+-- of the tree.
 profileCostCentresOrderBy
   :: Ord a
   => (CostCentre -> a)
+  -- ^ Sorting key function
   -> TimeAllocProfile
   -> Maybe (Tree CostCentre)
 profileCostCentresOrderBy sortKey =
   buildCostCentresOrderBy sortKey . profileCostCentreTree
 
+-- | Build a list of call-sites (caller functions) for a specified
+-- cost-centre name and module name.
 profileCallSites
   :: Text
+  -- ^ Cost-centre name
   -> Text
+  -- ^ Module name
   -> TimeAllocProfile
   -> Maybe (Callee, Seq CallSite)
 profileCallSites = profileCallSitesOrderBy sortKey
@@ -52,19 +62,28 @@ profileCallSites = profileCallSitesOrderBy sortKey
       costCentreInhTime &&& costCentreIndTime &&&
       costCentreInhAlloc &&& costCentreIndAlloc
 
+-- | Build a list of call-sites (caller function) for a specified
+-- cost-centre name and module name. Nodes are sorted by the given
+-- key function.
 profileCallSitesOrderBy
   :: Ord a
   => (CostCentre -> a)
+  -- ^ Sorting key function
   -> Text
+  -- ^ Cost-centre name
   -> Text
+  -- ^ Module name
   -> TimeAllocProfile
   -> Maybe (Callee, Seq CallSite)
 profileCallSitesOrderBy sortKey name modName =
   buildCallSitesOrderBy sortKey name modName . profileCostCentreTree
 
+-----------------------------------------------------------
+
 buildCostCentresOrderBy
   :: Ord a
   => (CostCentre -> a)
+  -- ^ Sorting key function
   -> CostCentreTree
   -> Maybe (Tree CostCentre)
 buildCostCentresOrderBy sortKey CostCentreTree {..} = do
