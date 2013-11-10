@@ -48,3 +48,7 @@ executable dump
     , text
   ghc-options: -Wall -rtsopts
   default-language: Haskell2010
+
+source-repository head
+  type: git
+  location: https://github.com/maoe/ghc-time-alloc-prof.git
