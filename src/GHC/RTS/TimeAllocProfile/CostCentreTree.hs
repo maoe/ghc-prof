@@ -1,4 +1,5 @@
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE RecordWildCards #-}
 module GHC.RTS.TimeAllocProfile.CostCentreTree
   ( profileCostCentres
@@ -20,12 +21,18 @@ import Data.Traversable (mapM)
 import Data.Tree (Tree)
 import Prelude hiding (mapM)
 import qualified Data.Foldable as Fold
-import qualified Data.IntMap.Strict as IntMap
-import qualified Data.Map.Strict as Map
 import qualified Data.Sequence as Seq
 import qualified Data.Tree as Tree
 
 import GHC.RTS.TimeAllocProfile.Types
+
+#if MIN_VERSION_containers(0, 5, 0)
+import qualified Data.IntMap.Strict as IntMap
+import qualified Data.Map.Strict as Map
+#else
+import qualified Data.IntMap as IntMap
+import qualified Data.Map as Map
+#endif
 
 -- | Build a tree of cost-centres from a profiling report.
 profileCostCentres :: TimeAllocProfile -> Maybe (Tree CostCentre)
