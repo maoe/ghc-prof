@@ -40,6 +40,8 @@ data BriefCostCentre = BriefCostCentre
   -- ^ Name of the cost-centre
   , briefCostCentreModule :: Text
   -- ^ Module name of the cost-centre
+  , briefCostCentreSrc :: Maybe Text
+  -- ^ Source location of the cost-centre
   , briefCostCentreTime :: Double
   -- ^ Total time spent in the cost-centre
   , briefCostCentreAlloc :: Double
@@ -58,6 +60,8 @@ data CostCentre = CostCentre
   -- ^ Name of the cost-centre
   , costCentreModule :: Text
   -- ^ Module name of the cost-centre
+  , costCentreSrc :: Maybe Text
+  -- ^ Source location of the cost-centre
   , costCentreNo :: CostCentreNo
   -- ^ Identifier of the cost-centre
   , costCentreEntries :: Integer

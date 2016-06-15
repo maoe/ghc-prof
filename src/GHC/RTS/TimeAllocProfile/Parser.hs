@@ -128,6 +128,7 @@ briefCostCentre :: Parser BriefCostCentre
 briefCostCentre = BriefCostCentre
   <$> symbol <* skipSpace -- name
   <*> symbol <* skipSpace -- module
+  <*> optional symbol <* skipSpace -- src
   <*> double <* skipSpace -- %time
   <*> double <* skipSpace -- %alloc
   <*> optional decimal <* skipSpace -- ticks
@@ -142,6 +143,7 @@ costCentre :: Parser CostCentre
 costCentre = do
   name <- A.takeWhile (not . isSpace); skipSpace
   modName <- A.takeWhile (not . isSpace); skipSpace
+  src <- optional symbol; skipSpace
   no <- decimal; skipSpace
   entries <- decimal; skipSpace
   indTime <- double; skipSpace
@@ -152,6 +154,7 @@ costCentre = do
   return CostCentre
     { costCentreName = name
     , costCentreModule = modName
+    , costCentreSrc = src
     , costCentreNo = no
     , costCentreEntries = entries
     , costCentreIndTime = indTime
