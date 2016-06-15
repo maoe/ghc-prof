@@ -141,8 +141,8 @@ costCentres = header *> skipSpace *> costCentreTree
 
 costCentre :: Parser CostCentre
 costCentre = do
-  name <- A.takeWhile (not . isSpace); skipSpace
-  modName <- A.takeWhile (not . isSpace); skipSpace
+  name <- symbol; skipSpace
+  modName <- symbol; skipSpace
   src <- optional symbol; skipSpace
   no <- decimal; skipSpace
   entries <- decimal; skipSpace
