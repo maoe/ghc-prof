@@ -16,16 +16,17 @@ main :: IO ()
 main = do
   file:restArgs <- getArgs
   text <- TLIO.readFile file
-  let ATL.Done _ prof = ATL.parse timeAllocProfile text
-  case restArgs of
-    [] -> Fold.mapM_ putStrLn $ drawTree . fmap makeCCName <$> profileCostCentres prof
-    name:modName:_ -> do
-      case profileCallSites (T.pack name) (T.pack modName) prof of
-        Nothing -> putStrLn "failed to parse call sites"
-        Just (callee, callSites) -> do
-          print callee
-          Fold.mapM_ print callSites
-    _ -> fail "Invalid parameters"
+  case ATL.parse timeAllocProfile text of
+    ATL.Fail unconsumed contexts reason -> fail $ show (unconsumed, contexts, reason)
+    ATL.Done _ prof -> case restArgs of
+      [] -> Fold.mapM_ putStrLn $ drawTree . fmap makeCCName <$> profileCostCentres prof
+      name:modName:_ -> do
+        case profileCallSites (T.pack name) (T.pack modName) prof of
+          Nothing -> putStrLn "failed to parse call sites"
+          Just (callee, callSites) -> do
+            print callee
+            Fold.mapM_ print callSites
+      _ -> fail "Invalid parameters"
 
 makeCCName :: CostCentre -> String
 makeCCName cc = T.unpack (costCentreModule cc)
@@ -42,4 +43,3 @@ makeCCName cc = T.unpack (costCentreModule cc)
   ++ ","
   ++ show (costCentreIndAlloc cc)
   ++ ")"
-

@@ -1,7 +1,7 @@
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE MultiWayIf #-}
 module GHC.RTS.TimeAllocProfile.Parser
   ( timeAllocProfile
 
@@ -22,13 +22,19 @@ import Data.Foldable (asum, foldl')
 import Data.Sequence (Seq, (><), (|>))
 import Data.Text (Text)
 import Data.Time
-import qualified Data.IntMap.Strict as IntMap
-import qualified Data.Map.Strict as Map
 import qualified Data.Sequence as Seq
 
 import Data.Attoparsec.Text as A
 
 import GHC.RTS.TimeAllocProfile.Types
+
+#if MIN_VERSION_containers(0, 5, 0)
+import qualified Data.IntMap.Strict as IntMap
+import qualified Data.Map.Strict as Map
+#else
+import qualified Data.IntMap as IntMap
+import qualified Data.Map as Map
+#endif
 
 timeAllocProfile :: Parser TimeAllocProfile
 timeAllocProfile = do
@@ -122,6 +128,7 @@ briefCostCentre :: Parser BriefCostCentre
 briefCostCentre = BriefCostCentre
   <$> symbol <* skipSpace -- name
   <*> symbol <* skipSpace -- module
+  <*> optional symbol <* skipSpace -- src
   <*> double <* skipSpace -- %time
   <*> double <* skipSpace -- %alloc
   <*> optional decimal <* skipSpace -- ticks
@@ -134,8 +141,9 @@ costCentres = header *> skipSpace *> costCentreTree
 
 costCentre :: Parser CostCentre
 costCentre = do
-  name <- A.takeWhile (not . isSpace); skipSpace
-  modName <- A.takeWhile (not . isSpace); skipSpace
+  name <- symbol; skipSpace
+  modName <- symbol; skipSpace
+  src <- optional symbol; skipSpace
   no <- decimal; skipSpace
   entries <- decimal; skipSpace
   indTime <- double; skipSpace
@@ -146,6 +154,7 @@ costCentre = do
   return CostCentre
     { costCentreName = name
     , costCentreModule = modName
+    , costCentreSrc = src
     , costCentreNo = no
     , costCentreEntries = entries
     , costCentreIndTime = indTime

@@ -1,5 +1,5 @@
 name: ghc-time-alloc-prof
-version: 0.0.0
+version: 0.0.0.1
 synopsis: Library for parsing GHC time and allocation profiling reports
 description: Library for parsing GHC time and allocation profiling reports
 homepage: https://github.com/maoe/ghc-time-alloc-prof
