@@ -47,16 +47,16 @@ timeAllocProfile = do
   profileHotCostCentres <- hotCostCentres; skipSpace
   profileCostCentreTree <- costCentres; skipSpace
   endOfInput
-  return TimeAllocProfile {..}
+  return $! TimeAllocProfile {..}
 
 timestamp :: Parser LocalTime
 timestamp = do
-  void parseDayOfTheWeek; skipSpace
+  parseDayOfTheWeek >> skipSpace
   month <- parseMonth; skipSpace
   day <- parseDay; skipSpace
   tod <- parseTimeOfDay; skipSpace
   year <- parseYear; skipSpace
-  return LocalTime
+  return $! LocalTime
     { localDay = fromGregorian year month day
     , localTimeOfDay = tod
     }
@@ -92,7 +92,7 @@ totalTime = do
     <$> decimal <* string " ticks @ "
     <*> picoSeconds <* string ", "
     <*> decimal <* many1 (notChar ')')
-  return TotalTime
+  return $! TotalTime
     { totalTimeElapsed = elapsed
     , totalTimeTicks = ticks
     , totalTimeResolution = picosecondsToDiffTime resolution
@@ -108,13 +108,13 @@ totalTime = do
 
 totalAlloc :: Parser TotalAlloc
 totalAlloc = do
-  void $ string "total alloc ="; skipSpace
-  n <- groupedDecimal
-  void $ string " bytes"; skipSpace
+  string "total alloc =" >> skipSpace
+  !n <- groupedDecimal
+  string " bytes" >> skipSpace
   parens $ void $ string "excludes profiling overheads"
   return TotalAlloc { totalAllocBytes = n }
   where
-    groupedDecimal = foldl' go 0 <$> decimal `sepBy` char ','
+    groupedDecimal = foldl' go 0 <$!> decimal `sepBy` char ','
       where
         go z n = z * 1000 + n
 
@@ -180,7 +180,7 @@ costCentre HeaderParams {..} = do
   inhTime <- double; skipHorizontalSpace
   inhAlloc <- double; skipHorizontalSpace
   optInfo <- optional optionalInfo
-  return CostCentre
+  return $! CostCentre
     { costCentreName = name
     , costCentreModule = modName
     , costCentreSrc = src
@@ -195,9 +195,9 @@ costCentre HeaderParams {..} = do
     }
   where
     optionalInfo = do
-      skipSpace
-      ticks <- decimal; skipSpace
-      bytes <- decimal
+      !ticks <- decimal
+      skipHorizontalSpace
+      !bytes <- decimal
       return (ticks, bytes)
 
 costCentreTree :: HeaderParams -> Parser CostCentreTree

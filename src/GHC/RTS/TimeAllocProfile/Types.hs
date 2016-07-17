@@ -9,23 +9,23 @@ import Data.Sequence (Seq)
 
 -- | Top-level profiling report
 data TimeAllocProfile = TimeAllocProfile
-  { profileTimestamp :: LocalTime
-  , profileCommandLine :: Text
-  , profileTotalTime :: TotalTime
-  , profileTotalAlloc :: TotalAlloc
+  { profileTimestamp :: !LocalTime
+  , profileCommandLine :: !Text
+  , profileTotalTime :: !TotalTime
+  , profileTotalAlloc :: !TotalAlloc
   , profileHotCostCentres :: [BriefCostCentre]
-  , profileCostCentreTree :: CostCentreTree
+  , profileCostCentreTree :: !CostCentreTree
   } deriving Show
 
 -- | @total time@ in the profiling reports
 data TotalTime = TotalTime
-  { totalTimeElapsed :: DiffTime
+  { totalTimeElapsed :: !DiffTime
   -- ^ Total elapsed time in seconds
-  , totalTimeTicks :: Integer
+  , totalTimeTicks :: !Integer
   -- ^ Total number of ticks
-  , totalTimeResolution :: DiffTime
+  , totalTimeResolution :: !DiffTime
   -- ^ Duration of a tick
-  , totalTimeProcessors :: Int
+  , totalTimeProcessors :: !Int
   -- ^ Number of processors
   } deriving Show
 
@@ -36,47 +36,47 @@ newtype TotalAlloc = TotalAlloc
   } deriving Show
 
 data BriefCostCentre = BriefCostCentre
-  { briefCostCentreName :: Text
+  { briefCostCentreName :: !Text
   -- ^ Name of the cost-centre
-  , briefCostCentreModule :: Text
+  , briefCostCentreModule :: !Text
   -- ^ Module name of the cost-centre
-  , briefCostCentreSrc :: Maybe Text
+  , briefCostCentreSrc :: !(Maybe Text)
   -- ^ Source location of the cost-centre
-  , briefCostCentreTime :: Double
+  , briefCostCentreTime :: !Double
   -- ^ Total time spent in the cost-centre
-  , briefCostCentreAlloc :: Double
+  , briefCostCentreAlloc :: !Double
   -- ^ Total allocation in the cost-centre
-  , briefCostCentreTicks :: Maybe Integer
+  , briefCostCentreTicks :: !(Maybe Integer)
   -- ^ Total ticks in the cost-centre. This number exists only if
   -- @-P@ or @-Pa@ option is given at run-time.
-  , briefCostCentreBytes :: Maybe Integer
+  , briefCostCentreBytes :: !(Maybe Integer)
   -- ^ Total memory allocation in the cost-centre. This number
   -- exists only if @-P@ or @-Pa@ option is given at run-time.
   } deriving Show
 
 -- | Cost-centre node
 data CostCentre = CostCentre
-  { costCentreName :: Text
+  { costCentreName :: !Text
   -- ^ Name of the cost-centre
-  , costCentreModule :: Text
+  , costCentreModule :: !Text
   -- ^ Module name of the cost-centre
-  , costCentreSrc :: Maybe Text
+  , costCentreSrc :: !(Maybe Text)
   -- ^ Source location of the cost-centre
-  , costCentreNo :: CostCentreNo
+  , costCentreNo :: !CostCentreNo
   -- ^ Identifier of the cost-centre
-  , costCentreEntries :: Integer
+  , costCentreEntries :: !Integer
   -- ^ Number of entries to the cost-centre
-  , costCentreIndTime :: Double
+  , costCentreIndTime :: !Double
   -- ^ Time spent in the cost-centre itself
-  , costCentreIndAlloc :: Double
+  , costCentreIndAlloc :: !Double
   -- ^ Allocation incurred by the cost-centre itself
-  , costCentreInhTime :: Double
+  , costCentreInhTime :: !Double
   -- ^ Time spent in the cost-centre's children
-  , costCentreInhAlloc :: Double
+  , costCentreInhAlloc :: !Double
   -- ^ Allocation incurred by the cost-centre's children
-  , costCentreTicks :: Maybe Integer
+  , costCentreTicks :: !(Maybe Integer)
   -- ^ Number of ticks in the cost-centre.
-  , costCentreBytes :: Maybe Integer
+  , costCentreBytes :: !(Maybe Integer)
   -- ^ Number of allocated bytes in the cost-centre.
   } deriving Show
 
