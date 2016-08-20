@@ -114,7 +114,9 @@ totalAlloc = do
   parens $ void $ string "excludes profiling overheads"
   return TotalAlloc { totalAllocBytes = n }
   where
-    groupedDecimal = foldl' go 0 <$!> decimal `sepBy` char ','
+    groupedDecimal = do
+      ds <- decimal `sepBy` char ','
+      return $! foldl' go 0 ds
       where
         go z n = z * 1000 + n
 
@@ -171,7 +173,11 @@ costCentre :: HeaderParams -> Parser CostCentre
 costCentre HeaderParams {..} = do
   name <- symbol; skipHorizontalSpace
   modName <- symbol; skipHorizontalSpace
-  src <- if headerHasSrc then Just <$!> symbol else pure Nothing
+  src <- if headerHasSrc
+    then do
+      !sym <- symbol
+      return $! Just sym
+    else pure Nothing
   skipHorizontalSpace
   no <- decimal; skipHorizontalSpace
   entries <- decimal; skipHorizontalSpace

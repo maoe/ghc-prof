@@ -10,7 +10,7 @@ module GHC.RTS.TimeAllocProfile.CostCentreTree
   , buildCostCentresOrderBy
   , buildCallSitesOrderBy
   ) where
-import Control.Applicative ((<$>), (<*>))
+import Control.Applicative
 import Control.Arrow ((&&&))
 import Data.Foldable (asum)
 import Data.Function (on)

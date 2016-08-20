@@ -2,10 +2,11 @@
 module GHC.RTS.TimeAllocProfile.Types where
 import Data.IntMap (IntMap)
 import Data.Map (Map)
-import Data.Monoid (mempty)
+import Data.Monoid
 import Data.Text (Text)
 import Data.Time (DiffTime, LocalTime)
 import Data.Sequence (Seq)
+import Prelude
 
 -- | Top-level profiling report
 data TimeAllocProfile = TimeAllocProfile
