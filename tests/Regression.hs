@@ -3,10 +3,12 @@
 module Main where
 import Data.Foldable
 import Data.Traversable
+import Control.Applicative
 import Control.Monad
 import System.Directory
 import System.FilePath
 import System.IO
+import Prelude
 
 import System.IO.Temp
 import System.Process
