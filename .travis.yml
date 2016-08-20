@@ -16,37 +16,37 @@ matrix:
   include:
     - env: CABALVER=1.24 GHCVER=7.6.1
       compiler: ": #GHC 7.6.1"
-      addons: {apt: {packages: [cabal-install-1.24,ghc-7.6.1], sources: [hvr-ghc]}}
+      addons: {apt: {packages: [cabal-install-1.24,ghc-7.6.1,ghc-7.6.1-prof], sources: [hvr-ghc]}}
     - env: CABALVER=1.24 GHCVER=7.6.2
       compiler: ": #GHC 7.6.2"
-      addons: {apt: {packages: [cabal-install-1.24,ghc-7.6.2], sources: [hvr-ghc]}}
+      addons: {apt: {packages: [cabal-install-1.24,ghc-7.6.2,ghc-7.6.2-prof], sources: [hvr-ghc]}}
     - env: CABALVER=1.24 GHCVER=7.6.3
       compiler: ": #GHC 7.6.3"
-      addons: {apt: {packages: [cabal-install-1.24,ghc-7.6.3], sources: [hvr-ghc]}}
+      addons: {apt: {packages: [cabal-install-1.24,ghc-7.6.3,ghc-7.6.3-prof], sources: [hvr-ghc]}}
     - env: CABALVER=1.24 GHCVER=7.8.1
       compiler: ": #GHC 7.8.1"
-      addons: {apt: {packages: [cabal-install-1.24,ghc-7.8.1], sources: [hvr-ghc]}}
+      addons: {apt: {packages: [cabal-install-1.24,ghc-7.8.1,ghc-7.8.1-prof], sources: [hvr-ghc]}}
     - env: CABALVER=1.24 GHCVER=7.8.2
       compiler: ": #GHC 7.8.2"
-      addons: {apt: {packages: [cabal-install-1.24,ghc-7.8.2], sources: [hvr-ghc]}}
+      addons: {apt: {packages: [cabal-install-1.24,ghc-7.8.2,ghc-7.8.2-prof], sources: [hvr-ghc]}}
     - env: CABALVER=1.24 GHCVER=7.8.3
       compiler: ": #GHC 7.8.3"
-      addons: {apt: {packages: [cabal-install-1.24,ghc-7.8.3], sources: [hvr-ghc]}}
+      addons: {apt: {packages: [cabal-install-1.24,ghc-7.8.3,ghc-7.8.3-prof], sources: [hvr-ghc]}}
     - env: CABALVER=1.24 GHCVER=7.8.4
       compiler: ": #GHC 7.8.4"
-      addons: {apt: {packages: [cabal-install-1.24,ghc-7.8.4], sources: [hvr-ghc]}}
+      addons: {apt: {packages: [cabal-install-1.24,ghc-7.8.4,ghc-7.8.4-prof], sources: [hvr-ghc]}}
     - env: CABALVER=1.24 GHCVER=7.10.1
       compiler: ": #GHC 7.10.1"
-      addons: {apt: {packages: [cabal-install-1.24,ghc-7.10.1], sources: [hvr-ghc]}}
+      addons: {apt: {packages: [cabal-install-1.24,ghc-7.10.1,ghc-7.10.1-prof], sources: [hvr-ghc]}}
     - env: CABALVER=1.24 GHCVER=7.10.2
       compiler: ": #GHC 7.10.2"
-      addons: {apt: {packages: [cabal-install-1.24,ghc-7.10.2], sources: [hvr-ghc]}}
+      addons: {apt: {packages: [cabal-install-1.24,ghc-7.10.2,ghc-7.10.2-prof], sources: [hvr-ghc]}}
     - env: CABALVER=1.24 GHCVER=7.10.3
       compiler: ": #GHC 7.10.3"
-      addons: {apt: {packages: [cabal-install-1.24,ghc-7.10.3], sources: [hvr-ghc]}}
+      addons: {apt: {packages: [cabal-install-1.24,ghc-7.10.3,ghc-7.10.3-prof], sources: [hvr-ghc]}}
     - env: CABALVER=1.24 GHCVER=8.0.1
       compiler: ": #GHC 8.0.1"
-      addons: {apt: {packages: [cabal-install-1.24,ghc-8.0.1], sources: [hvr-ghc]}}
+      addons: {apt: {packages: [cabal-install-1.24,ghc-8.0.1,ghc-8.0.1-prof], sources: [hvr-ghc]}}
 
 before_install:
  - unset CC
