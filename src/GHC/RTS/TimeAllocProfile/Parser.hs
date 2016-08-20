@@ -16,7 +16,7 @@ module GHC.RTS.TimeAllocProfile.Parser
   , costCentre
   ) where
 import Control.Applicative
-import Control.Monad (void)
+import Control.Monad
 import Data.Char (isSpace)
 import Data.Foldable (asum, foldl')
 import Data.Sequence (Seq, (><), (|>))
@@ -38,7 +38,7 @@ import qualified Data.Map as Map
 
 timeAllocProfile :: Parser TimeAllocProfile
 timeAllocProfile = do
-  skipSpace
+  skipHorizontalSpace
   profileTimestamp <- timestamp; skipSpace
   void title; skipSpace
   profileCommandLine <- commandLine; skipSpace
@@ -47,16 +47,16 @@ timeAllocProfile = do
   profileHotCostCentres <- hotCostCentres; skipSpace
   profileCostCentreTree <- costCentres; skipSpace
   endOfInput
-  return TimeAllocProfile {..}
+  return $! TimeAllocProfile {..}
 
 timestamp :: Parser LocalTime
 timestamp = do
-  void parseDayOfTheWeek; skipSpace
+  parseDayOfTheWeek >> skipSpace
   month <- parseMonth; skipSpace
   day <- parseDay; skipSpace
   tod <- parseTimeOfDay; skipSpace
   year <- parseYear; skipSpace
-  return LocalTime
+  return $! LocalTime
     { localDay = fromGregorian year month day
     , localTimeOfDay = tod
     }
@@ -92,7 +92,7 @@ totalTime = do
     <$> decimal <* string " ticks @ "
     <*> picoSeconds <* string ", "
     <*> decimal <* many1 (notChar ')')
-  return TotalTime
+  return $! TotalTime
     { totalTimeElapsed = elapsed
     , totalTimeTicks = ticks
     , totalTimeResolution = picosecondsToDiffTime resolution
@@ -108,50 +108,85 @@ totalTime = do
 
 totalAlloc :: Parser TotalAlloc
 totalAlloc = do
-  void $ string "total alloc ="; skipSpace
-  n <- groupedDecimal
-  void $ string " bytes"; skipSpace
+  string "total alloc =" >> skipSpace
+  !n <- groupedDecimal
+  string " bytes" >> skipSpace
   parens $ void $ string "excludes profiling overheads"
   return TotalAlloc { totalAllocBytes = n }
   where
-    groupedDecimal = foldl' go 0 <$> decimal `sepBy` char ','
+    groupedDecimal = do
+      ds <- decimal `sepBy` char ','
+      return $! foldl' go 0 ds
       where
         go z n = z * 1000 + n
 
-hotCostCentres :: Parser [BriefCostCentre]
-hotCostCentres =
-  header *> skipSpace *> many1 (briefCostCentre <* skipSpace)
-  where
-    header = A.takeWhile $ not . isEndOfLine
+newtype HeaderParams = HeaderParams
+  { headerHasSrc :: Bool -- ^ SRC column exists
+  } deriving Show
 
-briefCostCentre :: Parser BriefCostCentre
-briefCostCentre = BriefCostCentre
-  <$> symbol <* skipSpace -- name
-  <*> symbol <* skipSpace -- module
-  <*> optional symbol <* skipSpace -- src
-  <*> double <* skipSpace -- %time
-  <*> double <* skipSpace -- %alloc
-  <*> optional decimal <* skipSpace -- ticks
-  <*> optional decimal -- bytes
+header :: Parser HeaderParams
+header = do
+  optional_ $ do
+    string "individual" >> skipHorizontalSpace
+    string "inherited" >> skipSpace
+  string "COST CENTRE" >> skipHorizontalSpace
+  string "MODULE" >> skipHorizontalSpace
+  headerHasSrc <- option False $ True <$ string "SRC"; skipHorizontalSpace
+  optional_ $ string "no." >> skipHorizontalSpace
+  optional_ $ string "entries" >> skipHorizontalSpace
+  string "%time" >> skipHorizontalSpace
+  string "%alloc" >> skipHorizontalSpace
+  optional_ $ do
+    string "%time" >> skipHorizontalSpace
+    string "%alloc" >> skipHorizontalSpace
+  optional_ $ do
+    string "ticks" >> skipHorizontalSpace
+    string "bytes" >> skipHorizontalSpace
+  return HeaderParams
+    {..}
+
+hotCostCentres :: Parser [BriefCostCentre]
+hotCostCentres = do
+  params <- header; skipSpace
+  briefCostCentre params `sepBy1` endOfLine
+
+briefCostCentre :: HeaderParams -> Parser BriefCostCentre
+briefCostCentre HeaderParams {..} = BriefCostCentre
+  <$> symbol <* skipHorizontalSpace -- name
+  <*> symbol <* skipHorizontalSpace -- module
+  <*> source <* skipHorizontalSpace -- src
+  <*> double <* skipHorizontalSpace -- %time
+  <*> double <* skipHorizontalSpace -- %alloc
+  <*> optional decimal <* skipHorizontalSpace -- ticks
+  <*> optional decimal <* skipHorizontalSpace -- bytes
+  where
+    source
+      | headerHasSrc = Just <$> symbol
+      | otherwise = pure Nothing
 
 costCentres :: Parser CostCentreTree
-costCentres = header *> skipSpace *> costCentreTree
-  where
-    !header = count 2 $ A.takeWhile (not . isEndOfLine) <* skipSpace
+costCentres = do
+  params <- header; skipSpace
+  costCentreTree params
 
-costCentre :: Parser CostCentre
-costCentre = do
-  name <- symbol; skipSpace
-  modName <- symbol; skipSpace
-  src <- optional symbol; skipSpace
-  no <- decimal; skipSpace
-  entries <- decimal; skipSpace
-  indTime <- double; skipSpace
-  indAlloc <- double; skipSpace
-  inhTime <- double; skipSpace
-  inhAlloc <- double;
+costCentre :: HeaderParams -> Parser CostCentre
+costCentre HeaderParams {..} = do
+  name <- symbol; skipHorizontalSpace
+  modName <- symbol; skipHorizontalSpace
+  src <- if headerHasSrc
+    then do
+      !sym <- symbol
+      return $! Just sym
+    else pure Nothing
+  skipHorizontalSpace
+  no <- decimal; skipHorizontalSpace
+  entries <- decimal; skipHorizontalSpace
+  indTime <- double; skipHorizontalSpace
+  indAlloc <- double; skipHorizontalSpace
+  inhTime <- double; skipHorizontalSpace
+  inhAlloc <- double; skipHorizontalSpace
   optInfo <- optional optionalInfo
-  return CostCentre
+  return $! CostCentre
     { costCentreName = name
     , costCentreModule = modName
     , costCentreSrc = src
@@ -166,16 +201,19 @@ costCentre = do
     }
   where
     optionalInfo = do
-      skipSpace
-      ticks <- decimal; skipSpace
-      bytes <- decimal
+      !ticks <- decimal
+      skipHorizontalSpace
+      !bytes <- decimal
       return (ticks, bytes)
 
-costCentreTree :: Parser CostCentreTree
-costCentreTree = buildTree <$> costCentreList
+costCentreTree :: HeaderParams -> Parser CostCentreTree
+costCentreTree params = buildTree <$> costCentreList
   where
     costCentreList = nestedCostCentre `sepBy1` endOfLine
-    nestedCostCentre = (,) <$> nestLevel <*> costCentre
+    nestedCostCentre = (,)
+      <$> nestLevel
+      <*> costCentre params
+      <* skipHorizontalSpace
     nestLevel = howMany space
 
 type Level = Int
@@ -228,3 +266,9 @@ parens p = string "(" *> p <* string ")"
 
 symbol :: Parser Text
 symbol = A.takeWhile $ not . isSpace
+
+skipHorizontalSpace :: Parser ()
+skipHorizontalSpace = void $ A.takeWhile isHorizontalSpace
+
+optional_ :: Parser a -> Parser ()
+optional_ = void . optional
