@@ -16,7 +16,7 @@ main :: IO ()
 main = do
   file:restArgs <- getArgs
   text <- TLIO.readFile file
-  case ATL.parse timeAllocProfile text of
+  case ATL.parse profile text of
     ATL.Fail unconsumed contexts reason -> fail $ show (unconsumed, contexts, reason)
     ATL.Done _ prof -> case restArgs of
       [] -> Fold.mapM_ putStrLn $ drawTree . fmap makeCCName <$> profileCostCentres prof

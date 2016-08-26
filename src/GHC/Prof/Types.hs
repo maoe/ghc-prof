@@ -9,7 +9,7 @@ import Data.Sequence (Seq)
 import Prelude
 
 -- | Top-level profiling report
-data TimeAllocProfile = TimeAllocProfile
+data Profile = Profile
   { profileTimestamp :: !LocalTime
   , profileCommandLine :: !Text
   , profileTotalTime :: !TotalTime

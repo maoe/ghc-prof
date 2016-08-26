@@ -1,5 +1,5 @@
 module GHC.Prof
-  ( TimeAllocProfile(..)
+  ( Profile(..)
   , TotalTime(..)
   , TotalAlloc(..)
   , BriefCostCentre(..)
@@ -9,7 +9,7 @@ module GHC.Prof
   , CallSite(..)
 
   -- * Parser
-  , timeAllocProfile
+  , profile
 
   -- * Cost-centre tree
   , CostCentreTree
@@ -20,5 +20,5 @@ module GHC.Prof
   ) where
 
 import GHC.Prof.CostCentreTree
-import GHC.Prof.Parser (timeAllocProfile)
+import GHC.Prof.Parser (profile)
 import GHC.Prof.Types

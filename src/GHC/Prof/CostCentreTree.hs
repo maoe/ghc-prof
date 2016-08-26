@@ -35,7 +35,7 @@ import qualified Data.Map as Map
 #endif
 
 -- | Build a tree of cost-centres from a profiling report.
-profileCostCentres :: TimeAllocProfile -> Maybe (Tree CostCentre)
+profileCostCentres :: Profile -> Maybe (Tree CostCentre)
 profileCostCentres = profileCostCentresOrderBy sortKey
   where
     sortKey =
@@ -49,7 +49,7 @@ profileCostCentresOrderBy
   :: Ord a
   => (CostCentre -> a)
   -- ^ Sorting key function
-  -> TimeAllocProfile
+  -> Profile
   -> Maybe (Tree CostCentre)
 profileCostCentresOrderBy sortKey =
   buildCostCentresOrderBy sortKey . profileCostCentreTree
@@ -61,7 +61,7 @@ profileCallSites
   -- ^ Cost-centre name
   -> Text
   -- ^ Module name
-  -> TimeAllocProfile
+  -> Profile
   -> Maybe (Callee, Seq CallSite)
 profileCallSites = profileCallSitesOrderBy sortKey
   where
@@ -80,7 +80,7 @@ profileCallSitesOrderBy
   -- ^ Cost-centre name
   -> Text
   -- ^ Module name
-  -> TimeAllocProfile
+  -> Profile
   -> Maybe (Callee, Seq CallSite)
 profileCallSitesOrderBy sortKey name modName =
   buildCallSitesOrderBy sortKey name modName . profileCostCentreTree

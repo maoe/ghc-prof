@@ -53,7 +53,7 @@ profilingFlags =
 assertProfile :: FilePath -> Assertion
 assertProfile path = do
   text <- TL.readFile path
-  case ATL.parse timeAllocProfile text of
+  case ATL.parse profile text of
     ATL.Done {} -> return ()
     ATL.Fail _ _ reason -> assertFailure reason
 

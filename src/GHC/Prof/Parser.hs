@@ -3,7 +3,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 module GHC.Prof.Parser
-  ( timeAllocProfile
+  ( profile
 
   , timestamp
   , title
@@ -36,8 +36,8 @@ import qualified Data.IntMap as IntMap
 import qualified Data.Map as Map
 #endif
 
-timeAllocProfile :: Parser TimeAllocProfile
-timeAllocProfile = do
+profile :: Parser Profile
+profile = do
   skipHorizontalSpace
   profileTimestamp <- timestamp; skipSpace
   void title; skipSpace
@@ -47,7 +47,7 @@ timeAllocProfile = do
   profileHotCostCentres <- hotCostCentres; skipSpace
   profileCostCentreTree <- costCentres; skipSpace
   endOfInput
-  return $! TimeAllocProfile {..}
+  return $! Profile {..}
 
 timestamp :: Parser LocalTime
 timestamp = do
