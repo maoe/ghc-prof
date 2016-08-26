@@ -2,7 +2,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
-module GHC.RTS.TimeAllocProfile.Parser
+module GHC.Prof.Parser
   ( timeAllocProfile
 
   , timestamp
@@ -26,7 +26,7 @@ import qualified Data.Sequence as Seq
 
 import Data.Attoparsec.Text as A
 
-import GHC.RTS.TimeAllocProfile.Types
+import GHC.Prof.Types
 
 #if MIN_VERSION_containers(0, 5, 0)
 import qualified Data.IntMap.Strict as IntMap

@@ -9,7 +9,7 @@ import qualified Data.Foldable as Fold
 
 import qualified Data.Attoparsec.Text.Lazy as ATL
 
-import GHC.RTS.TimeAllocProfile
+import GHC.Prof
 
 
 main :: IO ()

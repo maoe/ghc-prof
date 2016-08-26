@@ -1,5 +1,5 @@
 {-# LANGUAGE RecordWildCards #-}
-module GHC.RTS.TimeAllocProfile.Types where
+module GHC.Prof.Types where
 import Data.IntMap (IntMap)
 import Data.Map (Map)
 import Data.Monoid

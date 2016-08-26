@@ -1,4 +1,4 @@
-module GHC.RTS.TimeAllocProfile
+module GHC.Prof
   ( TimeAllocProfile(..)
   , TotalTime(..)
   , TotalAlloc(..)
@@ -19,6 +19,6 @@ module GHC.RTS.TimeAllocProfile
   , profileCallSitesOrderBy
   ) where
 
-import GHC.RTS.TimeAllocProfile.CostCentreTree
-import GHC.RTS.TimeAllocProfile.Parser (timeAllocProfile)
-import GHC.RTS.TimeAllocProfile.Types
+import GHC.Prof.CostCentreTree
+import GHC.Prof.Parser (timeAllocProfile)
+import GHC.Prof.Types

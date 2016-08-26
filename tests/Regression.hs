@@ -17,7 +17,7 @@ import Test.Tasty.HUnit
 import qualified Data.Text.Lazy.IO as TL
 import qualified Data.Attoparsec.Text.Lazy as ATL
 
-import GHC.RTS.TimeAllocProfile
+import GHC.Prof
 
 #if !MIN_VERSION_directory(1, 2, 3)
 import Control.Exception

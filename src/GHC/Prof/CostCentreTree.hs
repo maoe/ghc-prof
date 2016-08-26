@@ -1,7 +1,7 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE RecordWildCards #-}
-module GHC.RTS.TimeAllocProfile.CostCentreTree
+module GHC.Prof.CostCentreTree
   ( profileCostCentres
   , profileCostCentresOrderBy
   , profileCallSites
@@ -24,7 +24,7 @@ import qualified Data.Foldable as Fold
 import qualified Data.Sequence as Seq
 import qualified Data.Tree as Tree
 
-import GHC.RTS.TimeAllocProfile.Types
+import GHC.Prof.Types
 
 #if MIN_VERSION_containers(0, 5, 0)
 import qualified Data.IntMap.Strict as IntMap
