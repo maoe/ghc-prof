@@ -1,7 +1,7 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE RecordWildCards #-}
-module GHC.RTS.TimeAllocProfile.CostCentreTree
+module GHC.Prof.CostCentreTree
   ( profileCostCentres
   , profileCostCentresOrderBy
   , profileCallSites
@@ -24,7 +24,7 @@ import qualified Data.Foldable as Fold
 import qualified Data.Sequence as Seq
 import qualified Data.Tree as Tree
 
-import GHC.RTS.TimeAllocProfile.Types
+import GHC.Prof.Types
 
 #if MIN_VERSION_containers(0, 5, 0)
 import qualified Data.IntMap.Strict as IntMap
@@ -35,7 +35,7 @@ import qualified Data.Map as Map
 #endif
 
 -- | Build a tree of cost-centres from a profiling report.
-profileCostCentres :: TimeAllocProfile -> Maybe (Tree CostCentre)
+profileCostCentres :: Profile -> Maybe (Tree CostCentre)
 profileCostCentres = profileCostCentresOrderBy sortKey
   where
     sortKey =
@@ -49,7 +49,7 @@ profileCostCentresOrderBy
   :: Ord a
   => (CostCentre -> a)
   -- ^ Sorting key function
-  -> TimeAllocProfile
+  -> Profile
   -> Maybe (Tree CostCentre)
 profileCostCentresOrderBy sortKey =
   buildCostCentresOrderBy sortKey . profileCostCentreTree
@@ -61,7 +61,7 @@ profileCallSites
   -- ^ Cost-centre name
   -> Text
   -- ^ Module name
-  -> TimeAllocProfile
+  -> Profile
   -> Maybe (Callee, Seq CallSite)
 profileCallSites = profileCallSitesOrderBy sortKey
   where
@@ -80,7 +80,7 @@ profileCallSitesOrderBy
   -- ^ Cost-centre name
   -> Text
   -- ^ Module name
-  -> TimeAllocProfile
+  -> Profile
   -> Maybe (Callee, Seq CallSite)
 profileCallSitesOrderBy sortKey name modName =
   buildCallSitesOrderBy sortKey name modName . profileCostCentreTree

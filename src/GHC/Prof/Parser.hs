@@ -2,8 +2,8 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
-module GHC.RTS.TimeAllocProfile.Parser
-  ( timeAllocProfile
+module GHC.Prof.Parser
+  ( profile
 
   , timestamp
   , title
@@ -26,7 +26,7 @@ import qualified Data.Sequence as Seq
 
 import Data.Attoparsec.Text as A
 
-import GHC.RTS.TimeAllocProfile.Types
+import GHC.Prof.Types
 
 #if MIN_VERSION_containers(0, 5, 0)
 import qualified Data.IntMap.Strict as IntMap
@@ -36,8 +36,8 @@ import qualified Data.IntMap as IntMap
 import qualified Data.Map as Map
 #endif
 
-timeAllocProfile :: Parser TimeAllocProfile
-timeAllocProfile = do
+profile :: Parser Profile
+profile = do
   skipHorizontalSpace
   profileTimestamp <- timestamp; skipSpace
   void title; skipSpace
@@ -47,7 +47,7 @@ timeAllocProfile = do
   profileHotCostCentres <- hotCostCentres; skipSpace
   profileCostCentreTree <- costCentres; skipSpace
   endOfInput
-  return $! TimeAllocProfile {..}
+  return $! Profile {..}
 
 timestamp :: Parser LocalTime
 timestamp = do

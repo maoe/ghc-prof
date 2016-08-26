@@ -1,5 +1,5 @@
 {-# LANGUAGE RecordWildCards #-}
-module GHC.RTS.TimeAllocProfile.Types where
+module GHC.Prof.Types where
 import Data.IntMap (IntMap)
 import Data.Map (Map)
 import Data.Monoid
@@ -9,7 +9,7 @@ import Data.Sequence (Seq)
 import Prelude
 
 -- | Top-level profiling report
-data TimeAllocProfile = TimeAllocProfile
+data Profile = Profile
   { profileTimestamp :: !LocalTime
   , profileCommandLine :: !Text
   , profileTotalTime :: !TotalTime
