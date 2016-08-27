@@ -13,10 +13,10 @@ module GHC.Prof
 
   -- * Cost-centre tree
   , CostCentreTree
-  , profileCostCentres
-  , profileCostCentresOrderBy
-  , profileCallSites
-  , profileCallSitesOrderBy
+  , costCentres
+  , costCentresOrderBy
+  , callSites
+  , callSitesOrderBy
   ) where
 
 import GHC.Prof.CostCentreTree

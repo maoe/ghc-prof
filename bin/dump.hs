@@ -19,13 +19,13 @@ main = do
   case ATL.parse profile text of
     ATL.Fail unconsumed contexts reason -> fail $ show (unconsumed, contexts, reason)
     ATL.Done _ prof -> case restArgs of
-      [] -> Fold.mapM_ putStrLn $ drawTree . fmap makeCCName <$> profileCostCentres prof
+      [] -> Fold.mapM_ putStrLn $ drawTree . fmap makeCCName <$> costCentres prof
       name:modName:_ -> do
-        case profileCallSites (T.pack name) (T.pack modName) prof of
+        case callSites (T.pack name) (T.pack modName) prof of
           Nothing -> putStrLn "failed to parse call sites"
-          Just (callee, callSites) -> do
+          Just (callee, callers) -> do
             print callee
-            Fold.mapM_ print callSites
+            Fold.mapM_ print callers
       _ -> fail "Invalid parameters"
 
 makeCCName :: CostCentre -> String
