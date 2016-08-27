@@ -157,8 +157,8 @@ aggregateCostCentre HeaderParams {..} = AggregateCostCentre
   <$> symbol <* skipHorizontalSpace -- name
   <*> symbol <* skipHorizontalSpace -- module
   <*> source <* skipHorizontalSpace -- src
-  <*> double <* skipHorizontalSpace -- %time
-  <*> double <* skipHorizontalSpace -- %alloc
+  <*> scientific <* skipHorizontalSpace -- %time
+  <*> scientific <* skipHorizontalSpace -- %alloc
   <*> optional decimal <* skipHorizontalSpace -- ticks
   <*> optional decimal <* skipHorizontalSpace -- bytes
   where
@@ -183,10 +183,10 @@ costCentre HeaderParams {..} = do
   skipHorizontalSpace
   no <- decimal; skipHorizontalSpace
   entries <- decimal; skipHorizontalSpace
-  indTime <- double; skipHorizontalSpace
-  indAlloc <- double; skipHorizontalSpace
-  inhTime <- double; skipHorizontalSpace
-  inhAlloc <- double; skipHorizontalSpace
+  indTime <- scientific; skipHorizontalSpace
+  indAlloc <- scientific; skipHorizontalSpace
+  inhTime <- scientific; skipHorizontalSpace
+  inhAlloc <- scientific; skipHorizontalSpace
   optInfo <- optional optionalInfo
   return $! CostCentre
     { costCentreName = name

@@ -1,12 +1,14 @@
 {-# LANGUAGE RecordWildCards #-}
 module GHC.Prof.Types where
+import Data.Monoid
+import Prelude
+
 import Data.IntMap (IntMap)
 import Data.Map (Map)
-import Data.Monoid
+import Data.Scientific (Scientific)
+import Data.Sequence (Seq)
 import Data.Text (Text)
 import Data.Time (DiffTime, LocalTime)
-import Data.Sequence (Seq)
-import Prelude
 
 -- | Top-level profiling report
 data Profile = Profile
@@ -43,9 +45,9 @@ data AggregateCostCentre = AggregateCostCentre
   -- ^ Module name of the cost-centre
   , aggregateCostCentreSrc :: !(Maybe Text)
   -- ^ Source location of the cost-centre
-  , aggregateCostCentreTime :: !Double
+  , aggregateCostCentreTime :: !Scientific
   -- ^ Total time spent in the cost-centre
-  , aggregateCostCentreAlloc :: !Double
+  , aggregateCostCentreAlloc :: !Scientific
   -- ^ Total allocation in the cost-centre
   , aggregateCostCentreTicks :: !(Maybe Integer)
   -- ^ Total ticks in the cost-centre. This number exists only if
@@ -67,13 +69,13 @@ data CostCentre = CostCentre
   -- ^ Identifier of the cost-centre
   , costCentreEntries :: !Integer
   -- ^ Number of entries to the cost-centre
-  , costCentreIndTime :: !Double
+  , costCentreIndTime :: !Scientific
   -- ^ Time spent in the cost-centre itself
-  , costCentreIndAlloc :: !Double
+  , costCentreIndAlloc :: !Scientific
   -- ^ Allocation incurred by the cost-centre itself
-  , costCentreInhTime :: !Double
+  , costCentreInhTime :: !Scientific
   -- ^ Time spent in the cost-centre's children
-  , costCentreInhAlloc :: !Double
+  , costCentreInhAlloc :: !Scientific
   -- ^ Allocation incurred by the cost-centre's children
   , costCentreTicks :: !(Maybe Integer)
   -- ^ Number of ticks in the cost-centre.
@@ -107,9 +109,9 @@ data Callee = Callee
   -- ^ Module name of the calle function
   , calleeEntries :: !Integer
   -- ^ Number of entries to the callee function
-  , calleeTime :: !Double
+  , calleeTime :: !Scientific
   -- ^ Time spent in the callee function
-  , calleeAlloc :: !Double
+  , calleeAlloc :: !Scientific
   -- ^ Allocation incurred by the callee function
   , calleeTicks :: !(Maybe Integer)
   -- ^ Number of ticks in the callee function
@@ -122,9 +124,9 @@ data CallSite = CallSite
   -- ^ Metrics for the caller function
   , callSiteContribEntries :: !Integer
   -- ^ Number of entries contriubted by the caller function
-  , callSiteContribTime :: !Double
+  , callSiteContribTime :: !Scientific
   -- ^ Time contributed by the caller function
-  , callSiteContribAlloc :: !Double
+  , callSiteContribAlloc :: !Scientific
   -- ^ Allocation contributed by the caller function
   , callSiteContribTicks :: !(Maybe Integer)
   -- ^ Number of tikcs contributed by the caller function

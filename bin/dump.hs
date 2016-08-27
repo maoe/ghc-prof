@@ -7,6 +7,7 @@ import System.Console.GetOpt
 import System.Environment (getArgs)
 import Text.Printf
 
+import Data.Scientific
 import Data.Tree (drawTree)
 import qualified Data.Attoparsec.Text.Lazy as ATL
 import qualified Data.Text as T
@@ -36,28 +37,25 @@ main = do
         _ -> fail "Invalid parameters"
 
 makeCCName :: CostCentre -> String
-makeCCName cc = T.unpack (costCentreModule cc)
-  ++ "."
-  ++ T.unpack (costCentreName cc)
-  ++ ":"
-  ++ show (costCentreNo cc)
-  ++ " ("
-  ++ show (costCentreInhTime cc)
-  ++ ","
-  ++ show (costCentreIndTime cc)
-  ++ ","
-  ++ show (costCentreInhAlloc cc)
-  ++ ","
-  ++ show (costCentreIndAlloc cc)
-  ++ ")"
+makeCCName cc = printf "%s.%s:%d (%s,%s,%s,%s)"
+  (T.unpack $ costCentreModule cc)
+  (T.unpack $ costCentreName cc)
+  (costCentreNo cc)
+  (showScientific $ costCentreInhTime cc)
+  (showScientific $ costCentreIndTime cc)
+  (showScientific $ costCentreInhAlloc cc)
+  (showScientific $ costCentreIndAlloc cc)
 
 makeAggregateCCName :: AggregateCostCentre -> String
 makeAggregateCCName aggregate = printf
-  "time %f%%\talloc %f%%\t%s.%s"
-  (aggregateCostCentreTime aggregate)
-  (aggregateCostCentreAlloc aggregate)
+  "%s%%\t%s%%\t%s.%s"
+  (showScientific $ aggregateCostCentreTime aggregate)
+  (showScientific $ aggregateCostCentreAlloc aggregate)
   (T.unpack $ aggregateCostCentreModule aggregate)
   (T.unpack $ aggregateCostCentreName aggregate)
+
+showScientific :: Scientific -> String
+showScientific = formatScientific Fixed Nothing
 
 data Options = Options
   { optMode :: Mode
