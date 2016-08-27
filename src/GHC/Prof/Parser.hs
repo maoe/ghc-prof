@@ -11,8 +11,8 @@ module GHC.Prof.Parser
   , commandLine
   , totalTime
   , totalAlloc
-  , hotCostCentres
-  , briefCostCentre
+  , topCostCentres
+  , aggregateCostCentre
   , costCentres
   , costCentre
   ) where
@@ -46,7 +46,7 @@ profile = do
   profileCommandLine <- commandLine; skipSpace
   profileTotalTime <- totalTime; skipSpace
   profileTotalAlloc <- totalAlloc; skipSpace
-  profileHotCostCentres <- hotCostCentres; skipSpace
+  profileTopCostCentres <- topCostCentres; skipSpace
   profileCostCentreTree <- costCentres; skipSpace
   endOfInput
   return $! Profile {..}
@@ -147,13 +147,13 @@ header = do
   return HeaderParams
     {..}
 
-hotCostCentres :: Parser [BriefCostCentre]
-hotCostCentres = do
+topCostCentres :: Parser [AggregateCostCentre]
+topCostCentres = do
   params <- header; skipSpace
-  briefCostCentre params `sepBy1` endOfLine
+  aggregateCostCentre params `sepBy1` endOfLine
 
-briefCostCentre :: HeaderParams -> Parser BriefCostCentre
-briefCostCentre HeaderParams {..} = BriefCostCentre
+aggregateCostCentre :: HeaderParams -> Parser AggregateCostCentre
+aggregateCostCentre HeaderParams {..} = AggregateCostCentre
   <$> symbol <* skipHorizontalSpace -- name
   <*> symbol <* skipHorizontalSpace -- module
   <*> source <* skipHorizontalSpace -- src

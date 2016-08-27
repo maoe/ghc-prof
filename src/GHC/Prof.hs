@@ -2,7 +2,7 @@ module GHC.Prof
   ( Profile(..)
   , TotalTime(..)
   , TotalAlloc(..)
-  , BriefCostCentre(..)
+  , AggregateCostCentre(..)
   , CostCentre(..)
   , CostCentreNo
   , Callee(..)
