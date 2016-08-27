@@ -13,6 +13,8 @@ module GHC.Prof
 
   -- * Cost-centre tree
   , CostCentreTree
+  , aggregateCostCentres
+  , aggregateCostCentresOrderBy
   , costCentres
   , costCentresOrderBy
   , callSites

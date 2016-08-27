@@ -272,7 +272,32 @@ buildTree = snd . foldl' go (TreePath 0 [], emptyCostCentreTree)
             (costCentreName node, costCentreModule node)
             (Seq.singleton node)
             costCentreCallSites
+          , costCentreAggregate = Map.insertWith addCostCentre
+            (costCentreName node, costCentreModule node)
+            (AggregateCostCentre
+              { aggregateCostCentreName = costCentreName node
+              , aggregateCostCentreModule = costCentreModule node
+              , aggregateCostCentreSrc = costCentreSrc node
+              , aggregateCostCentreTime = costCentreIndTime node
+              , aggregateCostCentreAlloc = costCentreIndAlloc node
+              , aggregateCostCentreTicks = costCentreTicks node
+              , aggregateCostCentreBytes = costCentreBytes node
+              })
+            costCentreAggregate
           }
+        addCostCentre x y = x
+          { aggregateCostCentreTime =
+            aggregateCostCentreTime x + aggregateCostCentreTime y
+          , aggregateCostCentreAlloc =
+            aggregateCostCentreAlloc x + aggregateCostCentreAlloc y
+          , aggregateCostCentreTicks = (+)
+            <$> aggregateCostCentreTicks x
+            <*> aggregateCostCentreTicks y
+          , aggregateCostCentreBytes = (+)
+            <$> aggregateCostCentreBytes x
+            <*> aggregateCostCentreBytes y
+          }
+
 
 howMany :: Parser a -> Parser Int
 howMany p = loop 0

@@ -2,8 +2,12 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE RecordWildCards #-}
 module GHC.Prof.CostCentreTree
-  ( costCentres
+  ( aggregateCostCentres
+  , aggregateCostCentresOrderBy
+
+  , costCentres
   , costCentresOrderBy
+
   , callSites
   , callSitesOrderBy
 
@@ -14,14 +18,16 @@ import Control.Applicative
 import Control.Arrow ((&&&))
 import Data.Foldable (asum)
 import Data.Function (on)
+import Data.List
 import Data.Maybe (listToMaybe)
-import Data.Sequence (Seq)
-import Data.Text (Text)
 import Data.Traversable (mapM)
-import Data.Tree (Tree)
 import Prelude hiding (mapM)
 import qualified Data.Foldable as Fold
 import qualified Data.Sequence as Seq
+
+import Data.Sequence (Seq)
+import Data.Text (Text)
+import Data.Tree (Tree)
 import qualified Data.Tree as Tree
 
 import GHC.Prof.Types
@@ -33,6 +39,20 @@ import qualified Data.Map.Strict as Map
 import qualified Data.IntMap as IntMap
 import qualified Data.Map as Map
 #endif
+
+aggregateCostCentres :: Profile -> [AggregateCostCentre]
+aggregateCostCentres = aggregateCostCentresOrderBy sortKey
+  where
+    sortKey = aggregateCostCentreTime &&& aggregateCostCentreAlloc
+
+aggregateCostCentresOrderBy
+  :: Ord a
+  => (AggregateCostCentre -> a)
+  -- ^ Sorting key function
+  -> Profile
+  -> [AggregateCostCentre]
+aggregateCostCentresOrderBy sortKey =
+  buildAggregateCostCentresOrderBy sortKey . profileCostCentreTree
 
 -- | Build a tree of cost-centres from a profiling report.
 costCentres :: Profile -> Maybe (Tree CostCentre)
@@ -86,6 +106,14 @@ callSitesOrderBy sortKey name modName =
   buildCallSitesOrderBy sortKey name modName . profileCostCentreTree
 
 -----------------------------------------------------------
+
+buildAggregateCostCentresOrderBy
+  :: Ord a
+  => (AggregateCostCentre -> a)
+  -> CostCentreTree
+  -> [AggregateCostCentre]
+buildAggregateCostCentresOrderBy sortKey CostCentreTree {..} =
+  sortBy (flip compare `on` sortKey) $ Map.elems $ costCentreAggregate
 
 buildCostCentresOrderBy
   :: Ord a

@@ -88,6 +88,7 @@ data CostCentreTree = CostCentreTree
   , costCentreParents :: !(IntMap CostCentreNo)
   , costCentreChildren :: !(IntMap (Seq CostCentre))
   , costCentreCallSites :: !(Map (Text, Text) (Seq CostCentre))
+  , costCentreAggregate :: !(Map (Text, Text) AggregateCostCentre)
   } deriving Show
 
 emptyCostCentreTree :: CostCentreTree
@@ -96,6 +97,7 @@ emptyCostCentreTree = CostCentreTree
   , costCentreParents = mempty
   , costCentreChildren = mempty
   , costCentreCallSites = mempty
+  , costCentreAggregate = mempty
   }
 
 data Callee = Callee
