@@ -2,10 +2,14 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE RecordWildCards #-}
 module GHC.Prof.CostCentreTree
-  ( profileCostCentres
-  , profileCostCentresOrderBy
-  , profileCallSites
-  , profileCallSitesOrderBy
+  ( aggregateCostCentres
+  , aggregateCostCentresOrderBy
+
+  , costCentres
+  , costCentresOrderBy
+
+  , callSites
+  , callSitesOrderBy
 
   , buildCostCentresOrderBy
   , buildCallSitesOrderBy
@@ -14,14 +18,16 @@ import Control.Applicative
 import Control.Arrow ((&&&))
 import Data.Foldable (asum)
 import Data.Function (on)
+import Data.List
 import Data.Maybe (listToMaybe)
-import Data.Sequence (Seq)
-import Data.Text (Text)
 import Data.Traversable (mapM)
-import Data.Tree (Tree)
 import Prelude hiding (mapM)
 import qualified Data.Foldable as Fold
 import qualified Data.Sequence as Seq
+
+import Data.Sequence (Seq)
+import Data.Text (Text)
+import Data.Tree (Tree)
 import qualified Data.Tree as Tree
 
 import GHC.Prof.Types
@@ -34,9 +40,23 @@ import qualified Data.IntMap as IntMap
 import qualified Data.Map as Map
 #endif
 
+aggregateCostCentres :: Profile -> [AggregateCostCentre]
+aggregateCostCentres = aggregateCostCentresOrderBy sortKey
+  where
+    sortKey = aggregateCostCentreTime &&& aggregateCostCentreAlloc
+
+aggregateCostCentresOrderBy
+  :: Ord a
+  => (AggregateCostCentre -> a)
+  -- ^ Sorting key function
+  -> Profile
+  -> [AggregateCostCentre]
+aggregateCostCentresOrderBy sortKey =
+  buildAggregateCostCentresOrderBy sortKey . profileCostCentreTree
+
 -- | Build a tree of cost-centres from a profiling report.
-profileCostCentres :: Profile -> Maybe (Tree CostCentre)
-profileCostCentres = profileCostCentresOrderBy sortKey
+costCentres :: Profile -> Maybe (Tree CostCentre)
+costCentres = costCentresOrderBy sortKey
   where
     sortKey =
       costCentreInhTime &&& costCentreIndTime &&&
@@ -45,25 +65,25 @@ profileCostCentres = profileCostCentresOrderBy sortKey
 -- | Build a tree of cost-centres from a profiling report.
 -- Nodes are sorted by the given key function for each level
 -- of the tree.
-profileCostCentresOrderBy
+costCentresOrderBy
   :: Ord a
   => (CostCentre -> a)
   -- ^ Sorting key function
   -> Profile
   -> Maybe (Tree CostCentre)
-profileCostCentresOrderBy sortKey =
+costCentresOrderBy sortKey =
   buildCostCentresOrderBy sortKey . profileCostCentreTree
 
 -- | Build a list of call-sites (caller functions) for a specified
 -- cost-centre name and module name.
-profileCallSites
+callSites
   :: Text
   -- ^ Cost-centre name
   -> Text
   -- ^ Module name
   -> Profile
   -> Maybe (Callee, Seq CallSite)
-profileCallSites = profileCallSitesOrderBy sortKey
+callSites = callSitesOrderBy sortKey
   where
     sortKey =
       costCentreInhTime &&& costCentreIndTime &&&
@@ -72,7 +92,7 @@ profileCallSites = profileCallSitesOrderBy sortKey
 -- | Build a list of call-sites (caller function) for a specified
 -- cost-centre name and module name. Nodes are sorted by the given
 -- key function.
-profileCallSitesOrderBy
+callSitesOrderBy
   :: Ord a
   => (CostCentre -> a)
   -- ^ Sorting key function
@@ -82,10 +102,18 @@ profileCallSitesOrderBy
   -- ^ Module name
   -> Profile
   -> Maybe (Callee, Seq CallSite)
-profileCallSitesOrderBy sortKey name modName =
+callSitesOrderBy sortKey name modName =
   buildCallSitesOrderBy sortKey name modName . profileCostCentreTree
 
 -----------------------------------------------------------
+
+buildAggregateCostCentresOrderBy
+  :: Ord a
+  => (AggregateCostCentre -> a)
+  -> CostCentreTree
+  -> [AggregateCostCentre]
+buildAggregateCostCentresOrderBy sortKey CostCentreTree {..} =
+  sortBy (flip compare `on` sortKey) $ Map.elems $ costCentreAggregate
 
 buildCostCentresOrderBy
   :: Ord a
@@ -119,13 +147,13 @@ buildCallSitesOrderBy
   -> CostCentreTree
   -> Maybe (Callee, Seq CallSite)
 buildCallSitesOrderBy sortKey name modName tree@CostCentreTree {..} =
-  (,) <$> callee <*> callSites
+  (,) <$> callee <*> callers
   where
     lookupCallees = Map.lookup (name, modName) costCentreCallSites
     !callee = do
       callees <- lookupCallees
       return $ buildCallee name modName callees
-    callSites = do
+    callers = do
       callees <- lookupCallees
       mapM (buildCallSite tree) $
         Seq.unstableSortBy (flip compare `on` sortKey) callees

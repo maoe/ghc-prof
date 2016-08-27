@@ -14,7 +14,7 @@ data Profile = Profile
   , profileCommandLine :: !Text
   , profileTotalTime :: !TotalTime
   , profileTotalAlloc :: !TotalAlloc
-  , profileHotCostCentres :: [BriefCostCentre]
+  , profileTopCostCentres :: [AggregateCostCentre]
   , profileCostCentreTree :: !CostCentreTree
   } deriving Show
 
@@ -36,21 +36,21 @@ newtype TotalAlloc = TotalAlloc
   -- ^ Total memory allocation in bytes
   } deriving Show
 
-data BriefCostCentre = BriefCostCentre
-  { briefCostCentreName :: !Text
+data AggregateCostCentre = AggregateCostCentre
+  { aggregateCostCentreName :: !Text
   -- ^ Name of the cost-centre
-  , briefCostCentreModule :: !Text
+  , aggregateCostCentreModule :: !Text
   -- ^ Module name of the cost-centre
-  , briefCostCentreSrc :: !(Maybe Text)
+  , aggregateCostCentreSrc :: !(Maybe Text)
   -- ^ Source location of the cost-centre
-  , briefCostCentreTime :: !Double
+  , aggregateCostCentreTime :: !Double
   -- ^ Total time spent in the cost-centre
-  , briefCostCentreAlloc :: !Double
+  , aggregateCostCentreAlloc :: !Double
   -- ^ Total allocation in the cost-centre
-  , briefCostCentreTicks :: !(Maybe Integer)
+  , aggregateCostCentreTicks :: !(Maybe Integer)
   -- ^ Total ticks in the cost-centre. This number exists only if
   -- @-P@ or @-Pa@ option is given at run-time.
-  , briefCostCentreBytes :: !(Maybe Integer)
+  , aggregateCostCentreBytes :: !(Maybe Integer)
   -- ^ Total memory allocation in the cost-centre. This number
   -- exists only if @-P@ or @-Pa@ option is given at run-time.
   } deriving Show
@@ -88,6 +88,7 @@ data CostCentreTree = CostCentreTree
   , costCentreParents :: !(IntMap CostCentreNo)
   , costCentreChildren :: !(IntMap (Seq CostCentre))
   , costCentreCallSites :: !(Map (Text, Text) (Seq CostCentre))
+  , costCentreAggregate :: !(Map (Text, Text) AggregateCostCentre)
   } deriving Show
 
 emptyCostCentreTree :: CostCentreTree
@@ -96,6 +97,7 @@ emptyCostCentreTree = CostCentreTree
   , costCentreParents = mempty
   , costCentreChildren = mempty
   , costCentreCallSites = mempty
+  , costCentreAggregate = mempty
   }
 
 data Callee = Callee

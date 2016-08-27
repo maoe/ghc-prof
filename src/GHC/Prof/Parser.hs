@@ -11,8 +11,8 @@ module GHC.Prof.Parser
   , commandLine
   , totalTime
   , totalAlloc
-  , hotCostCentres
-  , briefCostCentre
+  , topCostCentres
+  , aggregateCostCentre
   , costCentres
   , costCentre
   ) where
@@ -46,7 +46,7 @@ profile = do
   profileCommandLine <- commandLine; skipSpace
   profileTotalTime <- totalTime; skipSpace
   profileTotalAlloc <- totalAlloc; skipSpace
-  profileHotCostCentres <- hotCostCentres; skipSpace
+  profileTopCostCentres <- topCostCentres; skipSpace
   profileCostCentreTree <- costCentres; skipSpace
   endOfInput
   return $! Profile {..}
@@ -147,13 +147,13 @@ header = do
   return HeaderParams
     {..}
 
-hotCostCentres :: Parser [BriefCostCentre]
-hotCostCentres = do
+topCostCentres :: Parser [AggregateCostCentre]
+topCostCentres = do
   params <- header; skipSpace
-  briefCostCentre params `sepBy1` endOfLine
+  aggregateCostCentre params `sepBy1` endOfLine
 
-briefCostCentre :: HeaderParams -> Parser BriefCostCentre
-briefCostCentre HeaderParams {..} = BriefCostCentre
+aggregateCostCentre :: HeaderParams -> Parser AggregateCostCentre
+aggregateCostCentre HeaderParams {..} = AggregateCostCentre
   <$> symbol <* skipHorizontalSpace -- name
   <*> symbol <* skipHorizontalSpace -- module
   <*> source <* skipHorizontalSpace -- src
@@ -272,7 +272,32 @@ buildTree = snd . foldl' go (TreePath 0 [], emptyCostCentreTree)
             (costCentreName node, costCentreModule node)
             (Seq.singleton node)
             costCentreCallSites
+          , costCentreAggregate = Map.insertWith addCostCentre
+            (costCentreName node, costCentreModule node)
+            (AggregateCostCentre
+              { aggregateCostCentreName = costCentreName node
+              , aggregateCostCentreModule = costCentreModule node
+              , aggregateCostCentreSrc = costCentreSrc node
+              , aggregateCostCentreTime = costCentreIndTime node
+              , aggregateCostCentreAlloc = costCentreIndAlloc node
+              , aggregateCostCentreTicks = costCentreTicks node
+              , aggregateCostCentreBytes = costCentreBytes node
+              })
+            costCentreAggregate
           }
+        addCostCentre x y = x
+          { aggregateCostCentreTime =
+            aggregateCostCentreTime x + aggregateCostCentreTime y
+          , aggregateCostCentreAlloc =
+            aggregateCostCentreAlloc x + aggregateCostCentreAlloc y
+          , aggregateCostCentreTicks = (+)
+            <$> aggregateCostCentreTicks x
+            <*> aggregateCostCentreTicks y
+          , aggregateCostCentreBytes = (+)
+            <$> aggregateCostCentreBytes x
+            <*> aggregateCostCentreBytes y
+          }
+
 
 howMany :: Parser a -> Parser Int
 howMany p = loop 0

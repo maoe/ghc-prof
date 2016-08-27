@@ -2,7 +2,7 @@ module GHC.Prof
   ( Profile(..)
   , TotalTime(..)
   , TotalAlloc(..)
-  , BriefCostCentre(..)
+  , AggregateCostCentre(..)
   , CostCentre(..)
   , CostCentreNo
   , Callee(..)
@@ -13,10 +13,12 @@ module GHC.Prof
 
   -- * Cost-centre tree
   , CostCentreTree
-  , profileCostCentres
-  , profileCostCentresOrderBy
-  , profileCallSites
-  , profileCallSitesOrderBy
+  , aggregateCostCentres
+  , aggregateCostCentresOrderBy
+  , costCentres
+  , costCentresOrderBy
+  , callSites
+  , callSitesOrderBy
   ) where
 
 import GHC.Prof.CostCentreTree
