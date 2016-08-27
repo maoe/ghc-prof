@@ -2,6 +2,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE NamedFieldPuns #-}
 module GHC.Prof.Parser
   ( profile
 
@@ -19,7 +20,8 @@ import Control.Applicative
 import Control.Monad
 import Data.Char (isSpace)
 import Data.Foldable (asum, foldl')
-import Data.Sequence (Seq, (><), (|>))
+import Data.Sequence ((><))
+import Data.Maybe
 import Data.Text (Text)
 import Data.Time
 import qualified Data.Sequence as Seq
@@ -217,44 +219,60 @@ costCentreTree params = buildTree <$> costCentreList
     nestLevel = howMany space
 
 type Level = Int
-type TreePath = Seq Level
+
+-- | TreePath represents a path to a node in a cost centre tree.
+--
+-- Invariant: @'treePathLevel' == length 'treePath'@
+data TreePath = TreePath
+  { treePathLevel :: !Level
+  -- ^ Current depth of the path
+  , treePath :: [CostCentreNo]
+  -- ^ Path to the node
+  }
+
+push :: CostCentreNo -> TreePath -> TreePath
+push ccNo path@TreePath {..} = path
+  { treePathLevel = treePathLevel + 1
+  , treePath = ccNo:treePath
+  }
+
+popTo :: Level -> TreePath -> TreePath
+popTo level path@TreePath {..} = path
+  { treePathLevel = level
+  , treePath = drop (treePathLevel - level) treePath
+  }
+
+currentNo :: TreePath -> Maybe CostCentreNo
+currentNo TreePath {treePath} = listToMaybe treePath
 
 buildTree :: [(Level, CostCentre)] -> CostCentreTree
-buildTree = snd . foldl' go (Seq.empty, emptyCostCentreTree)
+buildTree = snd . foldl' go (TreePath 0 [], emptyCostCentreTree)
   where
     go
       :: (TreePath, CostCentreTree)
       -> (Level, CostCentre)
       -> (TreePath, CostCentreTree)
-    go (treePath, tree) (level, node) = (treePath', tree')
+    go (!path, !CostCentreTree {..}) (level, node) = (path', tree')
       where
-        !treePath' = Seq.take level treePath |> costCentreNo node
-        !tree' = if Seq.length treePath == 0
-          then CostCentreTree
-            { costCentreNodes = IntMap.singleton nodeNo node
-            , costCentreParents = IntMap.empty
-            , costCentreChildren = IntMap.empty
-            , costCentreCallSites = Map.singleton
-                (costCentreName node, costCentreModule node)
-                Seq.empty
-            }
-          else CostCentreTree
-            { costCentreNodes = IntMap.insert nodeNo node
-                (costCentreNodes tree)
-            , costCentreParents = IntMap.insert nodeNo parent
-                (costCentreParents tree)
-            , costCentreChildren = IntMap.insertWith (><)
-                parent
-                (Seq.singleton node)
-                (costCentreChildren tree)
-            , costCentreCallSites = Map.insertWith (><)
-                (costCentreName node, costCentreModule node)
-                (Seq.singleton node)
-                (costCentreCallSites tree)
-            }
-          where
-            nodeNo = costCentreNo node
-            parent = Seq.index treePath (level - 1)
+        ccNo = costCentreNo node
+        parentPath = popTo level path
+        parentNo = currentNo parentPath
+        path' = push ccNo parentPath
+        tree' = CostCentreTree
+          { costCentreNodes = IntMap.insert ccNo node costCentreNodes
+          , costCentreParents = maybe costCentreParents
+            (\parent -> IntMap.insert ccNo parent costCentreParents)
+            parentNo
+          , costCentreChildren = maybe costCentreChildren
+            (\parent -> IntMap.insertWith (><) parent
+              (Seq.singleton node)
+              costCentreChildren)
+            parentNo
+          , costCentreCallSites = Map.insertWith (><)
+            (costCentreName node, costCentreModule node)
+            (Seq.singleton node)
+            costCentreCallSites
+          }
 
 howMany :: Parser a -> Parser Int
 howMany p = loop 0
