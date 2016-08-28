@@ -63,7 +63,7 @@ data Options = Options
 
 defaultOptions :: Options
 defaultOptions = Options
-  { optMode = AggregateMode
+  { optMode = TreeMode
   }
 
 data Mode = AggregateMode | TreeMode
