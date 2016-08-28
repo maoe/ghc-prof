@@ -28,9 +28,9 @@ main = withSystemTempDirectory "test" $ \dir -> withCurrentDirectory dir $
   defaultMain $ testCaseSteps "Regression tests" $ \step -> do
     step "Generating profiling reports"
     profiles <- generateProfiles
-    for_ profiles $ \profile -> do
-      step $ "Parsing " ++ profile
-      assertProfile profile
+    for_ profiles $ \prof -> do
+      step $ "Parsing " ++ prof
+      assertProfile prof
 
 generateProfiles :: IO [FilePath]
 generateProfiles = do
