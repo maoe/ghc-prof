@@ -1,20 +1,22 @@
 {-# LANGUAGE RecordWildCards #-}
-module GHC.RTS.TimeAllocProfile.Types where
-import Data.IntMap (IntMap)
-import Data.Map (Map)
+module GHC.Prof.Types where
 import Data.Monoid
-import Data.Text (Text)
-import Data.Time (DiffTime, LocalTime)
-import Data.Sequence (Seq)
 import Prelude
 
+import Data.IntMap (IntMap)
+import Data.Map (Map)
+import Data.Scientific (Scientific)
+import Data.Sequence (Seq)
+import Data.Text (Text)
+import Data.Time (DiffTime, LocalTime)
+
 -- | Top-level profiling report
-data TimeAllocProfile = TimeAllocProfile
+data Profile = Profile
   { profileTimestamp :: !LocalTime
   , profileCommandLine :: !Text
   , profileTotalTime :: !TotalTime
   , profileTotalAlloc :: !TotalAlloc
-  , profileHotCostCentres :: [BriefCostCentre]
+  , profileTopCostCentres :: [AggregateCostCentre]
   , profileCostCentreTree :: !CostCentreTree
   } deriving Show
 
@@ -36,21 +38,21 @@ newtype TotalAlloc = TotalAlloc
   -- ^ Total memory allocation in bytes
   } deriving Show
 
-data BriefCostCentre = BriefCostCentre
-  { briefCostCentreName :: !Text
+data AggregateCostCentre = AggregateCostCentre
+  { aggregateCostCentreName :: !Text
   -- ^ Name of the cost-centre
-  , briefCostCentreModule :: !Text
+  , aggregateCostCentreModule :: !Text
   -- ^ Module name of the cost-centre
-  , briefCostCentreSrc :: !(Maybe Text)
+  , aggregateCostCentreSrc :: !(Maybe Text)
   -- ^ Source location of the cost-centre
-  , briefCostCentreTime :: !Double
+  , aggregateCostCentreTime :: !Scientific
   -- ^ Total time spent in the cost-centre
-  , briefCostCentreAlloc :: !Double
+  , aggregateCostCentreAlloc :: !Scientific
   -- ^ Total allocation in the cost-centre
-  , briefCostCentreTicks :: !(Maybe Integer)
+  , aggregateCostCentreTicks :: !(Maybe Integer)
   -- ^ Total ticks in the cost-centre. This number exists only if
   -- @-P@ or @-Pa@ option is given at run-time.
-  , briefCostCentreBytes :: !(Maybe Integer)
+  , aggregateCostCentreBytes :: !(Maybe Integer)
   -- ^ Total memory allocation in the cost-centre. This number
   -- exists only if @-P@ or @-Pa@ option is given at run-time.
   } deriving Show
@@ -67,13 +69,13 @@ data CostCentre = CostCentre
   -- ^ Identifier of the cost-centre
   , costCentreEntries :: !Integer
   -- ^ Number of entries to the cost-centre
-  , costCentreIndTime :: !Double
+  , costCentreIndTime :: !Scientific
   -- ^ Time spent in the cost-centre itself
-  , costCentreIndAlloc :: !Double
+  , costCentreIndAlloc :: !Scientific
   -- ^ Allocation incurred by the cost-centre itself
-  , costCentreInhTime :: !Double
+  , costCentreInhTime :: !Scientific
   -- ^ Time spent in the cost-centre's children
-  , costCentreInhAlloc :: !Double
+  , costCentreInhAlloc :: !Scientific
   -- ^ Allocation incurred by the cost-centre's children
   , costCentreTicks :: !(Maybe Integer)
   -- ^ Number of ticks in the cost-centre.
@@ -88,6 +90,7 @@ data CostCentreTree = CostCentreTree
   , costCentreParents :: !(IntMap CostCentreNo)
   , costCentreChildren :: !(IntMap (Seq CostCentre))
   , costCentreCallSites :: !(Map (Text, Text) (Seq CostCentre))
+  , costCentreAggregate :: !(Map (Text, Text) AggregateCostCentre)
   } deriving Show
 
 emptyCostCentreTree :: CostCentreTree
@@ -96,6 +99,7 @@ emptyCostCentreTree = CostCentreTree
   , costCentreParents = mempty
   , costCentreChildren = mempty
   , costCentreCallSites = mempty
+  , costCentreAggregate = mempty
   }
 
 data Callee = Callee
@@ -105,9 +109,9 @@ data Callee = Callee
   -- ^ Module name of the calle function
   , calleeEntries :: !Integer
   -- ^ Number of entries to the callee function
-  , calleeTime :: !Double
+  , calleeTime :: !Scientific
   -- ^ Time spent in the callee function
-  , calleeAlloc :: !Double
+  , calleeAlloc :: !Scientific
   -- ^ Allocation incurred by the callee function
   , calleeTicks :: !(Maybe Integer)
   -- ^ Number of ticks in the callee function
@@ -120,9 +124,9 @@ data CallSite = CallSite
   -- ^ Metrics for the caller function
   , callSiteContribEntries :: !Integer
   -- ^ Number of entries contriubted by the caller function
-  , callSiteContribTime :: !Double
+  , callSiteContribTime :: !Scientific
   -- ^ Time contributed by the caller function
-  , callSiteContribAlloc :: !Double
+  , callSiteContribAlloc :: !Scientific
   -- ^ Allocation contributed by the caller function
   , callSiteContribTicks :: !(Maybe Integer)
   -- ^ Number of tikcs contributed by the caller function

@@ -17,7 +17,7 @@ import Test.Tasty.HUnit
 import qualified Data.Text.Lazy.IO as TL
 import qualified Data.Attoparsec.Text.Lazy as ATL
 
-import GHC.RTS.TimeAllocProfile
+import GHC.Prof
 
 #if !MIN_VERSION_directory(1, 2, 3)
 import Control.Exception
@@ -28,9 +28,9 @@ main = withSystemTempDirectory "test" $ \dir -> withCurrentDirectory dir $
   defaultMain $ testCaseSteps "Regression tests" $ \step -> do
     step "Generating profiling reports"
     profiles <- generateProfiles
-    for_ profiles $ \profile -> do
-      step $ "Parsing " ++ profile
-      assertProfile profile
+    for_ profiles $ \prof -> do
+      step $ "Parsing " ++ prof
+      assertProfile prof
 
 generateProfiles :: IO [FilePath]
 generateProfiles = do
@@ -53,7 +53,7 @@ profilingFlags =
 assertProfile :: FilePath -> Assertion
 assertProfile path = do
   text <- TL.readFile path
-  case ATL.parse timeAllocProfile text of
+  case ATL.parse profile text of
     ATL.Done {} -> return ()
     ATL.Fail _ _ reason -> assertFailure reason
 

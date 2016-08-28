@@ -2,16 +2,17 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
-module GHC.RTS.TimeAllocProfile.Parser
-  ( timeAllocProfile
+{-# LANGUAGE NamedFieldPuns #-}
+module GHC.Prof.Parser
+  ( profile
 
   , timestamp
   , title
   , commandLine
   , totalTime
   , totalAlloc
-  , hotCostCentres
-  , briefCostCentre
+  , topCostCentres
+  , aggregateCostCentre
   , costCentres
   , costCentre
   ) where
@@ -19,14 +20,15 @@ import Control.Applicative
 import Control.Monad
 import Data.Char (isSpace)
 import Data.Foldable (asum, foldl')
-import Data.Sequence (Seq, (><), (|>))
+import Data.Sequence ((><))
+import Data.Maybe
 import Data.Text (Text)
 import Data.Time
 import qualified Data.Sequence as Seq
 
 import Data.Attoparsec.Text as A
 
-import GHC.RTS.TimeAllocProfile.Types
+import GHC.Prof.Types
 
 #if MIN_VERSION_containers(0, 5, 0)
 import qualified Data.IntMap.Strict as IntMap
@@ -36,18 +38,18 @@ import qualified Data.IntMap as IntMap
 import qualified Data.Map as Map
 #endif
 
-timeAllocProfile :: Parser TimeAllocProfile
-timeAllocProfile = do
+profile :: Parser Profile
+profile = do
   skipHorizontalSpace
   profileTimestamp <- timestamp; skipSpace
   void title; skipSpace
   profileCommandLine <- commandLine; skipSpace
   profileTotalTime <- totalTime; skipSpace
   profileTotalAlloc <- totalAlloc; skipSpace
-  profileHotCostCentres <- hotCostCentres; skipSpace
+  profileTopCostCentres <- topCostCentres; skipSpace
   profileCostCentreTree <- costCentres; skipSpace
   endOfInput
-  return $! TimeAllocProfile {..}
+  return $! Profile {..}
 
 timestamp :: Parser LocalTime
 timestamp = do
@@ -145,18 +147,18 @@ header = do
   return HeaderParams
     {..}
 
-hotCostCentres :: Parser [BriefCostCentre]
-hotCostCentres = do
+topCostCentres :: Parser [AggregateCostCentre]
+topCostCentres = do
   params <- header; skipSpace
-  briefCostCentre params `sepBy1` endOfLine
+  aggregateCostCentre params `sepBy1` endOfLine
 
-briefCostCentre :: HeaderParams -> Parser BriefCostCentre
-briefCostCentre HeaderParams {..} = BriefCostCentre
+aggregateCostCentre :: HeaderParams -> Parser AggregateCostCentre
+aggregateCostCentre HeaderParams {..} = AggregateCostCentre
   <$> symbol <* skipHorizontalSpace -- name
   <*> symbol <* skipHorizontalSpace -- module
   <*> source <* skipHorizontalSpace -- src
-  <*> double <* skipHorizontalSpace -- %time
-  <*> double <* skipHorizontalSpace -- %alloc
+  <*> scientific <* skipHorizontalSpace -- %time
+  <*> scientific <* skipHorizontalSpace -- %alloc
   <*> optional decimal <* skipHorizontalSpace -- ticks
   <*> optional decimal <* skipHorizontalSpace -- bytes
   where
@@ -181,10 +183,10 @@ costCentre HeaderParams {..} = do
   skipHorizontalSpace
   no <- decimal; skipHorizontalSpace
   entries <- decimal; skipHorizontalSpace
-  indTime <- double; skipHorizontalSpace
-  indAlloc <- double; skipHorizontalSpace
-  inhTime <- double; skipHorizontalSpace
-  inhAlloc <- double; skipHorizontalSpace
+  indTime <- scientific; skipHorizontalSpace
+  indAlloc <- scientific; skipHorizontalSpace
+  inhTime <- scientific; skipHorizontalSpace
+  inhAlloc <- scientific; skipHorizontalSpace
   optInfo <- optional optionalInfo
   return $! CostCentre
     { costCentreName = name
@@ -217,44 +219,85 @@ costCentreTree params = buildTree <$> costCentreList
     nestLevel = howMany space
 
 type Level = Int
-type TreePath = Seq Level
+
+-- | TreePath represents a path to a node in a cost centre tree.
+--
+-- Invariant: @'treePathLevel' == length 'treePath'@
+data TreePath = TreePath
+  { treePathLevel :: !Level
+  -- ^ Current depth of the path
+  , treePath :: [CostCentreNo]
+  -- ^ Path to the node
+  }
+
+push :: CostCentreNo -> TreePath -> TreePath
+push ccNo path@TreePath {..} = path
+  { treePathLevel = treePathLevel + 1
+  , treePath = ccNo:treePath
+  }
+
+popTo :: Level -> TreePath -> TreePath
+popTo level path@TreePath {..} = path
+  { treePathLevel = level
+  , treePath = drop (treePathLevel - level) treePath
+  }
+
+currentNo :: TreePath -> Maybe CostCentreNo
+currentNo TreePath {treePath} = listToMaybe treePath
 
 buildTree :: [(Level, CostCentre)] -> CostCentreTree
-buildTree = snd . foldl' go (Seq.empty, emptyCostCentreTree)
+buildTree = snd . foldl' go (TreePath 0 [], emptyCostCentreTree)
   where
     go
       :: (TreePath, CostCentreTree)
       -> (Level, CostCentre)
       -> (TreePath, CostCentreTree)
-    go (treePath, tree) (level, node) = (treePath', tree')
+    go (!path, !CostCentreTree {..}) (level, node) = (path', tree')
       where
-        !treePath' = Seq.take level treePath |> costCentreNo node
-        !tree' = if Seq.length treePath == 0
-          then CostCentreTree
-            { costCentreNodes = IntMap.singleton nodeNo node
-            , costCentreParents = IntMap.empty
-            , costCentreChildren = IntMap.empty
-            , costCentreCallSites = Map.singleton
-                (costCentreName node, costCentreModule node)
-                Seq.empty
-            }
-          else CostCentreTree
-            { costCentreNodes = IntMap.insert nodeNo node
-                (costCentreNodes tree)
-            , costCentreParents = IntMap.insert nodeNo parent
-                (costCentreParents tree)
-            , costCentreChildren = IntMap.insertWith (><)
-                parent
-                (Seq.singleton node)
-                (costCentreChildren tree)
-            , costCentreCallSites = Map.insertWith (><)
-                (costCentreName node, costCentreModule node)
-                (Seq.singleton node)
-                (costCentreCallSites tree)
-            }
-          where
-            nodeNo = costCentreNo node
-            parent = Seq.index treePath (level - 1)
+        ccNo = costCentreNo node
+        parentPath = popTo level path
+        parentNo = currentNo parentPath
+        path' = push ccNo parentPath
+        tree' = CostCentreTree
+          { costCentreNodes = IntMap.insert ccNo node costCentreNodes
+          , costCentreParents = maybe costCentreParents
+            (\parent -> IntMap.insert ccNo parent costCentreParents)
+            parentNo
+          , costCentreChildren = maybe costCentreChildren
+            (\parent -> IntMap.insertWith (><) parent
+              (Seq.singleton node)
+              costCentreChildren)
+            parentNo
+          , costCentreCallSites = Map.insertWith (><)
+            (costCentreName node, costCentreModule node)
+            (Seq.singleton node)
+            costCentreCallSites
+          , costCentreAggregate = Map.insertWith addCostCentre
+            (costCentreName node, costCentreModule node)
+            (AggregateCostCentre
+              { aggregateCostCentreName = costCentreName node
+              , aggregateCostCentreModule = costCentreModule node
+              , aggregateCostCentreSrc = costCentreSrc node
+              , aggregateCostCentreTime = costCentreIndTime node
+              , aggregateCostCentreAlloc = costCentreIndAlloc node
+              , aggregateCostCentreTicks = costCentreTicks node
+              , aggregateCostCentreBytes = costCentreBytes node
+              })
+            costCentreAggregate
+          }
+        addCostCentre x y = x
+          { aggregateCostCentreTime =
+            aggregateCostCentreTime x + aggregateCostCentreTime y
+          , aggregateCostCentreAlloc =
+            aggregateCostCentreAlloc x + aggregateCostCentreAlloc y
+          , aggregateCostCentreTicks = (+)
+            <$> aggregateCostCentreTicks x
+            <*> aggregateCostCentreTicks y
+          , aggregateCostCentreBytes = (+)
+            <$> aggregateCostCentreBytes x
+            <*> aggregateCostCentreBytes y
+          }
+
 
 howMany :: Parser a -> Parser Int
 howMany p = loop 0
