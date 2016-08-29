@@ -24,11 +24,11 @@ import Data.Maybe (listToMaybe)
 import Data.Traversable (mapM)
 import Prelude hiding (mapM)
 import qualified Data.Foldable as Fold
-import qualified Data.Sequence as Seq
 
-import Data.Sequence (Seq)
+import Data.Set (Set)
 import Data.Text (Text)
 import Data.Tree (Tree)
+import qualified Data.Set as Set
 import qualified Data.Tree as Tree
 
 import GHC.Prof.Types
@@ -83,7 +83,7 @@ callSites
   -> Text
   -- ^ Module name
   -> Profile
-  -> Maybe (Callee, Seq CallSite)
+  -> Maybe (Callee, [CallSite])
 callSites = callSitesOrderBy sortKey
   where
     sortKey =
@@ -102,7 +102,7 @@ callSitesOrderBy
   -> Text
   -- ^ Module name
   -> Profile
-  -> Maybe (Callee, Seq CallSite)
+  -> Maybe (Callee, [CallSite])
 callSitesOrderBy sortKey name modName =
   buildCallSitesOrderBy sortKey name modName . profileCostCentreTree
 
@@ -135,7 +135,7 @@ buildCostCentresOrderBy sortKey CostCentreTree {..} = do
           !children = maybe [] Fold.toList $ do
             nodes <- IntMap.lookup key costCentreChildren
             return $ costCentreNo
-                <$> Seq.unstableSortBy (flip compare `on` sortKey) nodes
+              <$> sortBy (flip compare `on` sortKey) (Set.toList nodes)
 
 buildCallSitesOrderBy
   :: Ord a
@@ -146,7 +146,7 @@ buildCallSitesOrderBy
   -> Text
   -- ^ Module name
   -> CostCentreTree
-  -> Maybe (Callee, Seq CallSite)
+  -> Maybe (Callee, [CallSite])
 buildCallSitesOrderBy sortKey name modName tree@CostCentreTree {..} =
   (,) <$> callee <*> callers
   where
@@ -157,17 +157,17 @@ buildCallSitesOrderBy sortKey name modName tree@CostCentreTree {..} =
     callers = do
       callees <- lookupCallees
       mapM (buildCallSite tree) $
-        Seq.unstableSortBy (flip compare `on` sortKey) callees
+        sortBy (flip compare `on` sortKey) $ Set.toList callees
 
-buildCallee :: Text -> Text -> Seq CostCentre -> Callee
+buildCallee :: Text -> Text -> Set CostCentre -> Callee
 buildCallee name modName callees = Callee
   { calleeName = name
   , calleeModule = modName
-  , calleeEntries = Fold.sum $ costCentreEntries <$> callees
-  , calleeTime = Fold.sum $ costCentreIndTime <$> callees
-  , calleeAlloc = Fold.sum $ costCentreIndAlloc <$> callees
-  , calleeTicks = asum $ costCentreTicks <$> callees
-  , calleeBytes = asum $ costCentreBytes <$> callees
+  , calleeEntries = Fold.sum $ Set.map costCentreEntries callees
+  , calleeTime = Fold.sum $ Set.map costCentreIndTime callees
+  , calleeAlloc = Fold.sum $ Set.map costCentreIndAlloc callees
+  , calleeTicks = asum $ Set.map costCentreTicks callees
+  , calleeBytes = asum $ Set.map costCentreBytes callees
   }
 
 buildCallSite :: CostCentreTree -> CostCentre -> Maybe CallSite
