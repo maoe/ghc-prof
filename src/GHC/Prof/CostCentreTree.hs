@@ -41,11 +41,15 @@ import qualified Data.IntMap as IntMap
 import qualified Data.Map as Map
 #endif
 
+-- | Build a list of cost-centres from a profiling report ordered by the time
+-- spent and the amount of allocation.
 aggregateCostCentres :: Profile -> [AggregateCostCentre]
 aggregateCostCentres = aggregateCostCentresOrderBy sortKey
   where
     sortKey = aggregateCostCentreTime &&& aggregateCostCentreAlloc
 
+-- | Build a list of cost-centres from a profling report ordered by the given
+-- key.
 aggregateCostCentresOrderBy
   :: Ord a
   => (AggregateCostCentre -> a)
