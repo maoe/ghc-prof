@@ -1,12 +1,13 @@
 {-# LANGUAGE RecordWildCards #-}
 module GHC.Prof.Types where
+import Data.Function
 import Data.Monoid
 import Prelude
 
 import Data.IntMap (IntMap)
 import Data.Map (Map)
 import Data.Scientific (Scientific)
-import Data.Sequence (Seq)
+import Data.Set (Set)
 import Data.Text (Text)
 import Data.Time (DiffTime, LocalTime)
 
@@ -83,13 +84,19 @@ data CostCentre = CostCentre
   -- ^ Number of allocated bytes in the cost-centre.
   } deriving Show
 
+instance Eq CostCentre where
+  (==) = (==) `on` costCentreNo
+
+instance Ord CostCentre where
+  compare = compare `on` costCentreNo
+
 type CostCentreNo = Int
 
 data CostCentreTree = CostCentreTree
   { costCentreNodes :: !(IntMap CostCentre)
   , costCentreParents :: !(IntMap CostCentreNo)
-  , costCentreChildren :: !(IntMap (Seq CostCentre))
-  , costCentreCallSites :: !(Map (Text, Text) (Seq CostCentre))
+  , costCentreChildren :: !(IntMap (Set CostCentre))
+  , costCentreCallSites :: !(Map (Text, Text) (Set CostCentre))
   , costCentreAggregate :: !(Map (Text, Text) AggregateCostCentre)
   } deriving Show
 
