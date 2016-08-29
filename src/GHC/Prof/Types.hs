@@ -83,6 +83,12 @@ data CostCentre = CostCentre
   -- ^ Number of allocated bytes in the cost-centre.
   } deriving Show
 
+instance Eq CostCentre where
+  (==) = (==) `on` costCentreNo
+
+instance Ord CostCentre where
+  compare = compare `on` costCentreNo
+
 type CostCentreNo = Int
 
 data CostCentreTree = CostCentreTree
