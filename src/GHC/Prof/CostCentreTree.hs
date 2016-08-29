@@ -12,6 +12,7 @@ module GHC.Prof.CostCentreTree
   , callSites
   , callSitesOrderBy
 
+  , buildAggregateCostCentresOrderBy
   , buildCostCentresOrderBy
   , buildCallSitesOrderBy
   ) where
