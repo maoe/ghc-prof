@@ -56,7 +56,7 @@ data AggregateCostCentre = AggregateCostCentre
   , aggregateCostCentreBytes :: !(Maybe Integer)
   -- ^ Total memory allocation in the cost-centre. This number
   -- exists only if @-P@ or @-Pa@ option is given at run-time.
-  } deriving Show
+  } deriving (Show, Eq, Ord)
 
 -- | Cost-centre node
 data CostCentre = CostCentre

@@ -59,6 +59,7 @@ test-suite regression
   build-depends:
       attoparsec >= 0.10 && < 0.14
     , base
+    , containers
     , directory
     , filepath
     , ghc-prof
