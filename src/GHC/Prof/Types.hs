@@ -1,6 +1,5 @@
 {-# LANGUAGE RecordWildCards #-}
 module GHC.Prof.Types where
-import Data.Function
 import Data.Monoid
 import Prelude
 
@@ -60,14 +59,14 @@ data AggregateCostCentre = AggregateCostCentre
 
 -- | Cost-centre node
 data CostCentre = CostCentre
-  { costCentreName :: !Text
+  { costCentreNo :: !CostCentreNo
+  -- ^ Identifier of the cost-centre
+  , costCentreName :: !Text
   -- ^ Name of the cost-centre
   , costCentreModule :: !Text
   -- ^ Module name of the cost-centre
   , costCentreSrc :: !(Maybe Text)
   -- ^ Source location of the cost-centre
-  , costCentreNo :: !CostCentreNo
-  -- ^ Identifier of the cost-centre
   , costCentreEntries :: !Integer
   -- ^ Number of entries to the cost-centre
   , costCentreIndTime :: !Scientific
@@ -82,13 +81,7 @@ data CostCentre = CostCentre
   -- ^ Number of ticks in the cost-centre.
   , costCentreBytes :: !(Maybe Integer)
   -- ^ Number of allocated bytes in the cost-centre.
-  } deriving Show
-
-instance Eq CostCentre where
-  (==) = (==) `on` costCentreNo
-
-instance Ord CostCentre where
-  compare = compare `on` costCentreNo
+  } deriving (Show, Eq, Ord)
 
 type CostCentreNo = Int
 
