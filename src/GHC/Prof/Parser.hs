@@ -20,11 +20,10 @@ import Control.Applicative
 import Control.Monad
 import Data.Char (isSpace)
 import Data.Foldable (asum, foldl')
-import Data.Sequence ((><))
 import Data.Maybe
 import Data.Text (Text)
 import Data.Time
-import qualified Data.Sequence as Seq
+import qualified Data.Set as Set
 
 import Data.Attoparsec.Text as A
 
@@ -38,6 +37,7 @@ import qualified Data.IntMap as IntMap
 import qualified Data.Map as Map
 #endif
 
+-- | Parse a GHC time-allocation profiling report
 profile :: Parser Profile
 profile = do
   skipHorizontalSpace
@@ -51,6 +51,7 @@ profile = do
   endOfInput
   return $! Profile {..}
 
+-- | Parse the timestamp in a header as local time
 timestamp :: Parser LocalTime
 timestamp = do
   parseDayOfTheWeek >> skipSpace
@@ -264,13 +265,13 @@ buildTree = snd . foldl' go (TreePath 0 [], emptyCostCentreTree)
             (\parent -> IntMap.insert ccNo parent costCentreParents)
             parentNo
           , costCentreChildren = maybe costCentreChildren
-            (\parent -> IntMap.insertWith (><) parent
-              (Seq.singleton node)
+            (\parent -> IntMap.insertWith Set.union parent
+              (Set.singleton node)
               costCentreChildren)
             parentNo
-          , costCentreCallSites = Map.insertWith (><)
+          , costCentreCallSites = Map.insertWith Set.union
             (costCentreName node, costCentreModule node)
-            (Seq.singleton node)
+            (Set.singleton node)
             costCentreCallSites
           , costCentreAggregate = Map.insertWith addCostCentre
             (costCentreName node, costCentreModule node)

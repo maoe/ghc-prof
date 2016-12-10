@@ -1,5 +1,5 @@
 name: ghc-prof
-version: 1.0.0
+version: 1.0.1
 synopsis: Library for parsing GHC time and allocation profiling reports
 description: Library for parsing GHC time and allocation profiling reports
 homepage: https://github.com/maoe/ghc-prof
@@ -59,6 +59,7 @@ test-suite regression
   build-depends:
       attoparsec >= 0.10 && < 0.14
     , base
+    , containers
     , directory
     , filepath
     , ghc-prof

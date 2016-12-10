@@ -6,7 +6,7 @@ import Prelude
 import Data.IntMap (IntMap)
 import Data.Map (Map)
 import Data.Scientific (Scientific)
-import Data.Sequence (Seq)
+import Data.Set (Set)
 import Data.Text (Text)
 import Data.Time (DiffTime, LocalTime)
 
@@ -55,18 +55,18 @@ data AggregateCostCentre = AggregateCostCentre
   , aggregateCostCentreBytes :: !(Maybe Integer)
   -- ^ Total memory allocation in the cost-centre. This number
   -- exists only if @-P@ or @-Pa@ option is given at run-time.
-  } deriving Show
+  } deriving (Show, Eq, Ord)
 
 -- | Cost-centre node
 data CostCentre = CostCentre
-  { costCentreName :: !Text
+  { costCentreNo :: !CostCentreNo
+  -- ^ Identifier of the cost-centre
+  , costCentreName :: !Text
   -- ^ Name of the cost-centre
   , costCentreModule :: !Text
   -- ^ Module name of the cost-centre
   , costCentreSrc :: !(Maybe Text)
   -- ^ Source location of the cost-centre
-  , costCentreNo :: !CostCentreNo
-  -- ^ Identifier of the cost-centre
   , costCentreEntries :: !Integer
   -- ^ Number of entries to the cost-centre
   , costCentreIndTime :: !Scientific
@@ -81,15 +81,15 @@ data CostCentre = CostCentre
   -- ^ Number of ticks in the cost-centre.
   , costCentreBytes :: !(Maybe Integer)
   -- ^ Number of allocated bytes in the cost-centre.
-  } deriving Show
+  } deriving (Show, Eq, Ord)
 
 type CostCentreNo = Int
 
 data CostCentreTree = CostCentreTree
   { costCentreNodes :: !(IntMap CostCentre)
   , costCentreParents :: !(IntMap CostCentreNo)
-  , costCentreChildren :: !(IntMap (Seq CostCentre))
-  , costCentreCallSites :: !(Map (Text, Text) (Seq CostCentre))
+  , costCentreChildren :: !(IntMap (Set CostCentre))
+  , costCentreCallSites :: !(Map (Text, Text) (Set CostCentre))
   , costCentreAggregate :: !(Map (Text, Text) AggregateCostCentre)
   } deriving Show
 

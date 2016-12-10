@@ -14,8 +14,9 @@ import System.IO.Temp
 import System.Process
 import Test.Tasty
 import Test.Tasty.HUnit
-import qualified Data.Text.Lazy.IO as TL
 import qualified Data.Attoparsec.Text.Lazy as ATL
+import qualified Data.Set as Set
+import qualified Data.Text.Lazy.IO as TL
 
 import GHC.Prof
 
@@ -35,7 +36,12 @@ main = withSystemTempDirectory "test" $ \dir -> withCurrentDirectory dir $
 generateProfiles :: IO [FilePath]
 generateProfiles = do
   withFile "hello.hs" WriteMode $ \h ->
-    hPutStrLn h "main = putStrLn \"Hello, World!\""
+    hPutStrLn h $ unlines
+      [ "import Control.Exception"
+      , "main = evaluate $ fib 100000"
+      , "fib n = fibs !! n"
+      , "fibs = 0:1:zipWith (+) fibs (tail fibs)"
+      ]
   void $ readProcess "ghc" ["-prof", "-rtsopts", "-fforce-recomp", "hello.hs"] ""
   for profilingFlags $ \(name, flag) -> do
     void $ readProcess "./hello" ["+RTS", flag, "-RTS"] ""
@@ -54,7 +60,12 @@ assertProfile :: FilePath -> Assertion
 assertProfile path = do
   text <- TL.readFile path
   case ATL.parse profile text of
-    ATL.Done {} -> return ()
+    ATL.Done _ prof -> do
+      let actual = Set.fromList $ aggregateCostCentres prof
+          expected = Set.fromList $ profileTopCostCentres prof
+      assertBool
+        ("Missing cost centre(s): " ++ show (Set.difference expected actual)) $
+          Set.isSubsetOf expected actual
     ATL.Fail _ _ reason -> assertFailure reason
 
 #if !MIN_VERSION_directory(1, 2, 3)
