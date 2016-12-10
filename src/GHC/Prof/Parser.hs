@@ -37,6 +37,7 @@ import qualified Data.IntMap as IntMap
 import qualified Data.Map as Map
 #endif
 
+-- | Parse a GHC time-allocation profiling report
 profile :: Parser Profile
 profile = do
   skipHorizontalSpace
@@ -50,6 +51,7 @@ profile = do
   endOfInput
   return $! Profile {..}
 
+-- | Parse the timestamp in a header as local time
 timestamp :: Parser LocalTime
 timestamp = do
   parseDayOfTheWeek >> skipSpace

@@ -1,13 +1,5 @@
 module GHC.Prof
   ( decode
-  , Profile(..)
-  , TotalTime(..)
-  , TotalAlloc(..)
-  , AggregateCostCentre(..)
-  , CostCentre(..)
-  , CostCentreNo
-  , Callee(..)
-  , CallSite(..)
 
   -- * Parser
   , profile
@@ -20,6 +12,16 @@ module GHC.Prof
   , costCentresOrderBy
   , callSites
   , callSitesOrderBy
+
+  -- * Types
+  , Profile(..)
+  , TotalTime(..)
+  , TotalAlloc(..)
+  , AggregateCostCentre(..)
+  , CostCentre(..)
+  , CostCentreNo
+  , Callee(..)
+  , CallSite(..)
   ) where
 
 import qualified Data.Attoparsec.Text.Lazy as ATL
