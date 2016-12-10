@@ -44,7 +44,6 @@ executable dump
   hs-source-dirs: bin
   build-depends:
       base
-    , attoparsec
     , containers
     , ghc-prof
     , scientific < 0.4
