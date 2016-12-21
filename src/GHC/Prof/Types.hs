@@ -45,6 +45,8 @@ data AggregateCostCentre = AggregateCostCentre
   -- ^ Module name of the cost-centre
   , aggregateCostCentreSrc :: !(Maybe Text)
   -- ^ Source location of the cost-centre
+  , aggregateCostCentreEntries :: !(Maybe Integer)
+  -- ^ Number of entries to the cost-centre
   , aggregateCostCentreTime :: !Scientific
   -- ^ Total time spent in the cost-centre
   , aggregateCostCentreAlloc :: !Scientific
@@ -101,23 +103,6 @@ emptyCostCentreTree = CostCentreTree
   , costCentreCallSites = mempty
   , costCentreAggregate = mempty
   }
-
-data Callee = Callee
-  { calleeName :: Text
-  -- ^ Name of the callee function
-  , calleeModule :: Text
-  -- ^ Module name of the calle function
-  , calleeEntries :: !Integer
-  -- ^ Number of entries to the callee function
-  , calleeTime :: !Scientific
-  -- ^ Time spent in the callee function
-  , calleeAlloc :: !Scientific
-  -- ^ Allocation incurred by the callee function
-  , calleeTicks :: !(Maybe Integer)
-  -- ^ Number of ticks in the callee function
-  , calleeBytes :: !(Maybe Integer)
-  -- ^ Number of allocated bytes in the callee function
-  } deriving Show
 
 data CallSite = CallSite
   { callSiteCostCentre :: CostCentre

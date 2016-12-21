@@ -23,6 +23,8 @@ library
     GHC.Prof.Parser
     GHC.Prof.Types
     GHC.Prof.CostCentreTree
+  other-modules:
+    Control.Monad.Extras
   build-depends:
       base == 4.*
     , attoparsec < 0.14
