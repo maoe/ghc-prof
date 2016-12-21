@@ -93,8 +93,8 @@ totalTime = do
   void $ string " secs"; skipSpace
   (ticks, resolution, processors) <- parens $ (,,)
     <$> decimal <* string " ticks @ "
-    <*> picoSeconds <* string ", "
-    <*> decimal <* many1 (notChar ')')
+    <*> picoSeconds
+    <*> optional (string ", " *> decimal <* many1 (notChar ')'))
   return $! TotalTime
     { totalTimeElapsed = elapsed
     , totalTimeTicks = ticks

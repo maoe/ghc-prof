@@ -28,7 +28,7 @@ data TotalTime = TotalTime
   -- ^ Total number of ticks
   , totalTimeResolution :: !DiffTime
   -- ^ Duration of a tick
-  , totalTimeProcessors :: !Int
+  , totalTimeProcessors :: !(Maybe Int)
   -- ^ Number of processors
   } deriving Show
 
