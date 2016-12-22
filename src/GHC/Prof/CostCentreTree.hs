@@ -1,7 +1,7 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE RecordWildCards #-}
-{-# OPTIONS_GHC -fsimpl-tick-factor=115 #-}
+{-# OPTIONS_GHC -fsimpl-tick-factor=200 #-}
 module GHC.Prof.CostCentreTree
   ( aggregateCostCentres
   , aggregateCostCentresOrderBy
