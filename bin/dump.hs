@@ -9,7 +9,6 @@ import Text.Printf
 
 import Data.Scientific
 import Data.Tree (drawTree)
-import qualified Data.Attoparsec.Text.Lazy as ATL
 import qualified Data.Text as T
 import qualified Data.Text.Lazy.IO as TLIO
 
@@ -19,10 +18,9 @@ main :: IO ()
 main = do
   (opts, file:restArgs) <- parseOpts =<< getArgs
   text <- TLIO.readFile file
-  case ATL.parse profile text of
-    ATL.Fail unconsumed contexts reason ->
-      fail $ show (unconsumed, contexts, reason)
-    ATL.Done _ prof -> case optMode opts of
+  case decode text of
+    Left reason -> fail reason
+    Right prof -> case optMode opts of
       AggregateMode ->
         traverse_ (putStrLn . makeAggregateCCName) $ aggregateCostCentres prof
       TreeMode -> case restArgs of

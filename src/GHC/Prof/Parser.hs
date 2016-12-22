@@ -27,6 +27,7 @@ import qualified Data.Set as Set
 
 import Data.Attoparsec.Text as A
 
+import Control.Monad.Extras (seqM)
 import GHC.Prof.Types
 
 #if MIN_VERSION_containers(0, 5, 0)
@@ -93,8 +94,8 @@ totalTime = do
   void $ string " secs"; skipSpace
   (ticks, resolution, processors) <- parens $ (,,)
     <$> decimal <* string " ticks @ "
-    <*> picoSeconds <* string ", "
-    <*> decimal <* many1 (notChar ')')
+    <*> picoSeconds
+    <*> optional (string ", " *> decimal <* many1 (notChar ')'))
   return $! TotalTime
     { totalTimeElapsed = elapsed
     , totalTimeTicks = ticks
@@ -158,6 +159,7 @@ aggregateCostCentre HeaderParams {..} = AggregateCostCentre
   <$> symbol <* skipHorizontalSpace -- name
   <*> symbol <* skipHorizontalSpace -- module
   <*> source <* skipHorizontalSpace -- src
+  <*> pure Nothing -- entries
   <*> scientific <* skipHorizontalSpace -- %time
   <*> scientific <* skipHorizontalSpace -- %alloc
   <*> optional decimal <* skipHorizontalSpace -- ticks
@@ -279,6 +281,7 @@ buildTree = snd . foldl' go (TreePath 0 [], emptyCostCentreTree)
               { aggregateCostCentreName = costCentreName node
               , aggregateCostCentreModule = costCentreModule node
               , aggregateCostCentreSrc = costCentreSrc node
+              , aggregateCostCentreEntries = Just $! costCentreEntries node
               , aggregateCostCentreTime = costCentreIndTime node
               , aggregateCostCentreAlloc = costCentreIndAlloc node
               , aggregateCostCentreTicks = costCentreTicks node
@@ -287,14 +290,17 @@ buildTree = snd . foldl' go (TreePath 0 [], emptyCostCentreTree)
             costCentreAggregate
           }
         addCostCentre x y = x
-          { aggregateCostCentreTime =
+          { aggregateCostCentreEntries = seqM $ (+)
+            <$> aggregateCostCentreEntries x
+            <*> aggregateCostCentreEntries y
+          , aggregateCostCentreTime =
             aggregateCostCentreTime x + aggregateCostCentreTime y
           , aggregateCostCentreAlloc =
             aggregateCostCentreAlloc x + aggregateCostCentreAlloc y
-          , aggregateCostCentreTicks = (+)
+          , aggregateCostCentreTicks = seqM $ (+)
             <$> aggregateCostCentreTicks x
             <*> aggregateCostCentreTicks y
-          , aggregateCostCentreBytes = (+)
+          , aggregateCostCentreBytes = seqM $ (+)
             <$> aggregateCostCentreBytes x
             <*> aggregateCostCentreBytes y
           }

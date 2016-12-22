@@ -1,5 +1,5 @@
 name: ghc-prof
-version: 1.0.1
+version: 1.1.0
 synopsis: Library for parsing GHC time and allocation profiling reports
 description: Library for parsing GHC time and allocation profiling reports
 homepage: https://github.com/maoe/ghc-prof
@@ -23,6 +23,8 @@ library
     GHC.Prof.Parser
     GHC.Prof.Types
     GHC.Prof.CostCentreTree
+  other-modules:
+    Control.Monad.Extras
   build-depends:
       base == 4.*
     , attoparsec < 0.14
@@ -44,7 +46,6 @@ executable dump
   hs-source-dirs: bin
   build-depends:
       base
-    , attoparsec
     , containers
     , ghc-prof
     , scientific < 0.4
