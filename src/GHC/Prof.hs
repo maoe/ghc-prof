@@ -20,7 +20,6 @@ module GHC.Prof
   , AggregateCostCentre(..)
   , CostCentre(..)
   , CostCentreNo
-  , Callee(..)
   , CallSite(..)
   ) where
 
