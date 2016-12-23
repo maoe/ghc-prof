@@ -10,6 +10,8 @@ module GHC.Prof
   , aggregateCostCentresOrderBy
   , costCentres
   , costCentresOrderBy
+  , aggregateCallSites
+  , aggregateCallSitesOrderBy
   , callSites
   , callSitesOrderBy
 

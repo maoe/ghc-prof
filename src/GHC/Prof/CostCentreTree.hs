@@ -9,19 +9,23 @@ module GHC.Prof.CostCentreTree
   , costCentres
   , costCentresOrderBy
 
+  , aggregateCallSites
+  , aggregateCallSitesOrderBy
+
   , callSites
   , callSitesOrderBy
 
   , buildAggregateCostCentresOrderBy
   , buildCostCentresOrderBy
   , buildCallSitesOrderBy
+  , buildAggregateCallSitesOrderBy
   ) where
 import Control.Applicative
 import Control.Arrow ((&&&))
+import Control.Monad
 import Data.Function (on)
 import Data.List
 import Data.Maybe (listToMaybe)
-import Data.Traversable (mapM)
 import Prelude hiding (mapM)
 import qualified Data.Foldable as Fold
 
@@ -30,7 +34,7 @@ import Data.Tree (Tree)
 import qualified Data.Set as Set
 import qualified Data.Tree as Tree
 
-import GHC.Prof.Types
+import GHC.Prof.Types as Types
 
 #if MIN_VERSION_containers(0, 5, 0)
 import qualified Data.IntMap.Strict as IntMap
@@ -77,6 +81,27 @@ costCentresOrderBy
   -> Maybe (Tree CostCentre)
 costCentresOrderBy sortKey =
   buildCostCentresOrderBy sortKey . profileCostCentreTree
+
+aggregateCallSites
+  :: Text
+  -> Text
+  -> Profile
+  -> Maybe (AggregateCostCentre, [CallSite AggregateCostCentre])
+aggregateCallSites = aggregateCallSitesOrderBy sortKey
+  where
+    sortKey = callSiteContribTime &&& callSiteContribAlloc
+      &&& aggregateCostCentreTime . callSiteCostCentre
+      &&& aggregateCostCentreAlloc . callSiteCostCentre
+
+aggregateCallSitesOrderBy
+  :: Ord a
+  => (CallSite AggregateCostCentre -> a)
+  -> Text
+  -> Text
+  -> Profile
+  -> Maybe (AggregateCostCentre, [CallSite AggregateCostCentre])
+aggregateCallSitesOrderBy sortKey name modName =
+  buildAggregateCallSitesOrderBy sortKey name modName . profileCostCentreTree
 
 -- | Build a list of call-sites (caller functions) for a specified
 -- cost-centre name and module name.
@@ -140,6 +165,62 @@ buildCostCentresOrderBy sortKey CostCentreTree {..} = do
             return $ costCentreNo
               <$> sortBy (flip compare `on` sortKey) (Set.toList nodes)
 
+buildAggregateCallSitesOrderBy
+  :: Ord a
+  => (CallSite AggregateCostCentre -> a)
+  -- ^ Sorting key function
+  -> Text
+  -- ^ Cost centre name
+  -> Text
+  -- ^ Module name
+  -> CostCentreTree
+  -> Maybe (AggregateCostCentre, [CallSite AggregateCostCentre])
+buildAggregateCallSitesOrderBy sortKey name modName tree@CostCentreTree {..} =
+  (,) <$> callee <*> callers
+  where
+    callee = Map.lookup (name, modName) costCentreAggregate
+    callers = do
+      callees <- Map.lookup (name, modName) costCentreCallSites
+      sortBy (flip compare `on` sortKey) . Map.elems
+        <$> foldM (buildAggregateCallSite tree) Map.empty (Set.toList callees)
+
+buildAggregateCallSite
+  :: CostCentreTree
+  -> Map.Map (Text, Text) (CallSite AggregateCostCentre)
+  -> CostCentre
+  -> Maybe (Map.Map (Text, Text) (CallSite AggregateCostCentre))
+buildAggregateCallSite CostCentreTree {..} parents CostCentre {..} = do
+  parentNo <- IntMap.lookup costCentreNo costCentreParents
+  parent <- IntMap.lookup parentNo costCentreNodes
+  let parentName = Types.costCentreName parent
+      parentModule = Types.costCentreModule parent
+  aggregate <- Map.lookup (parentName, parentModule) costCentreAggregate
+  return $! Map.insertWith
+    mergeCallSites
+    (parentName, parentModule)
+    CallSite
+      { callSiteCostCentre = aggregate
+      , callSiteContribEntries = costCentreEntries
+      , callSiteContribTime = costCentreIndTime
+      , callSiteContribAlloc = costCentreIndAlloc
+      , callSiteContribTicks = costCentreTicks
+      , callSiteContribBytes = costCentreBytes
+      }
+    parents
+
+mergeCallSites :: CallSite a -> CallSite a -> CallSite a
+mergeCallSites a b = a
+  { callSiteContribEntries = callSiteContribEntries a + callSiteContribEntries b
+  , callSiteContribTime = callSiteContribTime a + callSiteContribTime b
+  , callSiteContribAlloc = callSiteContribAlloc a + callSiteContribAlloc b
+  , callSiteContribTicks = (+)
+    <$> callSiteContribTicks a
+    <*> callSiteContribTicks b
+  , callSiteContribBytes = (+)
+    <$> callSiteContribBytes a
+    <*> callSiteContribBytes b
+  }
+
 buildCallSitesOrderBy
   :: Ord a
   => (CallSite CostCentre -> a)
@@ -153,14 +234,16 @@ buildCallSitesOrderBy
 buildCallSitesOrderBy sortKey name modName tree@CostCentreTree {..} =
   (,) <$> callee <*> callers
   where
-    lookupCallees = Map.lookup (name, modName) costCentreCallSites
     callee = Map.lookup (name, modName) costCentreAggregate
     callers = do
-      callees <- lookupCallees
+      callees <- Map.lookup (name, modName) costCentreCallSites
       sortBy (flip compare `on` sortKey)
         <$> mapM (buildCallSite tree) (Set.toList callees)
 
-buildCallSite :: CostCentreTree -> CostCentre -> Maybe (CallSite CostCentre)
+buildCallSite
+  :: CostCentreTree
+  -> CostCentre
+  -> Maybe (CallSite CostCentre)
 buildCallSite CostCentreTree {..} CostCentre {..} = do
   parentNo <- IntMap.lookup costCentreNo costCentreParents
   parent <- IntMap.lookup parentNo costCentreNodes
