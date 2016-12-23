@@ -89,16 +89,16 @@ callSites
   -> Maybe (AggregateCostCentre, [CallSite])
 callSites = callSitesOrderBy sortKey
   where
-    sortKey =
-      costCentreInhTime &&& costCentreIndTime &&&
-      costCentreInhAlloc &&& costCentreIndAlloc
+    sortKey = callSiteContribTime &&& callSiteContribAlloc
+      &&& costCentreIndTime . callSiteCostCentre
+      &&& costCentreIndAlloc . callSiteCostCentre
 
 -- | Build a list of call-sites (caller function) for a specified
 -- cost-centre name and module name. Nodes are sorted by the given
 -- key function.
 callSitesOrderBy
   :: Ord a
-  => (CostCentre -> a)
+  => (CallSite -> a)
   -- ^ Sorting key function
   -> Text
   -- ^ Cost-centre name
@@ -142,7 +142,7 @@ buildCostCentresOrderBy sortKey CostCentreTree {..} = do
 
 buildCallSitesOrderBy
   :: Ord a
-  => (CostCentre -> a)
+  => (CallSite -> a)
   -- ^ Sorting key function
   -> Text
   -- ^ Cost-centre name
@@ -157,8 +157,8 @@ buildCallSitesOrderBy sortKey name modName tree@CostCentreTree {..} =
     callee = Map.lookup (name, modName) costCentreAggregate
     callers = do
       callees <- lookupCallees
-      mapM (buildCallSite tree) $
-        sortBy (flip compare `on` sortKey) $ Set.toList callees
+      sortBy (flip compare `on` sortKey)
+        <$> mapM (buildCallSite tree) (Set.toList callees)
 
 buildCallSite :: CostCentreTree -> CostCentre -> Maybe CallSite
 buildCallSite CostCentreTree {..} CostCentre {..} = do
