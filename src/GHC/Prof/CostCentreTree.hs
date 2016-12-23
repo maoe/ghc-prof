@@ -83,9 +83,13 @@ costCentresOrderBy
 costCentresOrderBy sortKey =
   buildCostCentresOrderBy sortKey . profileCostCentreTree
 
+-- | Build a list of call sites (caller functions of a cost centre) aggregated
+-- by their cost centre names and module names.
 aggregateCallSites
   :: Text
+  -- ^ Cost centre name
   -> Text
+  -- ^ Module name
   -> Profile
   -> Maybe (AggregateCostCentre, [CallSite AggregateCostCentre])
 aggregateCallSites = aggregateCallSitesOrderBy sortKey
@@ -94,11 +98,17 @@ aggregateCallSites = aggregateCallSitesOrderBy sortKey
       &&& aggregateCostCentreTime . callSiteCostCentre
       &&& aggregateCostCentreAlloc . callSiteCostCentre
 
+-- | Build a list of call sites (caller functions of a cost centre) aggregated
+-- by their cost centre names and module names. Call sites are sorted by the
+-- given key function.
 aggregateCallSitesOrderBy
   :: Ord a
   => (CallSite AggregateCostCentre -> a)
+  -- ^ Sorting key function
   -> Text
+  -- ^ Cost centre name
   -> Text
+  -- ^ Module name
   -> Profile
   -> Maybe (AggregateCostCentre, [CallSite AggregateCostCentre])
 aggregateCallSitesOrderBy sortKey name modName =
