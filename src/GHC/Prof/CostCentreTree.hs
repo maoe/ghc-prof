@@ -34,6 +34,7 @@ import Data.Tree (Tree)
 import qualified Data.Set as Set
 import qualified Data.Tree as Tree
 
+import Control.Monad.Extras (seqM)
 import GHC.Prof.Types as Types
 
 #if MIN_VERSION_containers(0, 5, 0)
@@ -213,10 +214,10 @@ mergeCallSites a b = a
   { callSiteContribEntries = callSiteContribEntries a + callSiteContribEntries b
   , callSiteContribTime = callSiteContribTime a + callSiteContribTime b
   , callSiteContribAlloc = callSiteContribAlloc a + callSiteContribAlloc b
-  , callSiteContribTicks = (+)
+  , callSiteContribTicks = seqM $ (+)
     <$> callSiteContribTicks a
     <*> callSiteContribTicks b
-  , callSiteContribBytes = (+)
+  , callSiteContribBytes = seqM $ (+)
     <$> callSiteContribBytes a
     <*> callSiteContribBytes b
   }
