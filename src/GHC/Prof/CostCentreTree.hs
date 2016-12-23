@@ -86,7 +86,7 @@ callSites
   -> Text
   -- ^ Module name
   -> Profile
-  -> Maybe (AggregateCostCentre, [CallSite])
+  -> Maybe (AggregateCostCentre, [CallSite CostCentre])
 callSites = callSitesOrderBy sortKey
   where
     sortKey = callSiteContribTime &&& callSiteContribAlloc
@@ -98,14 +98,14 @@ callSites = callSitesOrderBy sortKey
 -- key function.
 callSitesOrderBy
   :: Ord a
-  => (CallSite -> a)
+  => (CallSite CostCentre -> a)
   -- ^ Sorting key function
   -> Text
   -- ^ Cost-centre name
   -> Text
   -- ^ Module name
   -> Profile
-  -> Maybe (AggregateCostCentre, [CallSite])
+  -> Maybe (AggregateCostCentre, [CallSite CostCentre])
 callSitesOrderBy sortKey name modName =
   buildCallSitesOrderBy sortKey name modName . profileCostCentreTree
 
@@ -142,14 +142,14 @@ buildCostCentresOrderBy sortKey CostCentreTree {..} = do
 
 buildCallSitesOrderBy
   :: Ord a
-  => (CallSite -> a)
+  => (CallSite CostCentre -> a)
   -- ^ Sorting key function
   -> Text
   -- ^ Cost-centre name
   -> Text
   -- ^ Module name
   -> CostCentreTree
-  -> Maybe (AggregateCostCentre, [CallSite])
+  -> Maybe (AggregateCostCentre, [CallSite CostCentre])
 buildCallSitesOrderBy sortKey name modName tree@CostCentreTree {..} =
   (,) <$> callee <*> callers
   where
@@ -160,7 +160,7 @@ buildCallSitesOrderBy sortKey name modName tree@CostCentreTree {..} =
       sortBy (flip compare `on` sortKey)
         <$> mapM (buildCallSite tree) (Set.toList callees)
 
-buildCallSite :: CostCentreTree -> CostCentre -> Maybe CallSite
+buildCallSite :: CostCentreTree -> CostCentre -> Maybe (CallSite CostCentre)
 buildCallSite CostCentreTree {..} CostCentre {..} = do
   parentNo <- IntMap.lookup costCentreNo costCentreParents
   parent <- IntMap.lookup parentNo costCentreNodes
