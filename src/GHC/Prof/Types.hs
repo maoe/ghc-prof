@@ -104,8 +104,8 @@ emptyCostCentreTree = CostCentreTree
   , costCentreAggregate = mempty
   }
 
-data CallSite = CallSite
-  { callSiteCostCentre :: CostCentre
+data CallSite cc = CallSite
+  { callSiteCostCentre :: cc
   -- ^ Metrics for the caller function
   , callSiteContribEntries :: !Integer
   -- ^ Number of entries contriubted by the caller function
