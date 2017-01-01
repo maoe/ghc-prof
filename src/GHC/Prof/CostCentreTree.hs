@@ -310,7 +310,7 @@ buildAggregateModulesOrderBy sortKey CostCentreTree {..} =
       []
       costCentreAggregate
   where
-    aggregateModule modName = foldl' add (emptyAggregateModule modName)
+    aggregateModule modName = Map.foldl' add (emptyAggregateModule modName)
     add aggMod AggregateCostCentre {..} = aggMod
       { aggregateModuleEntries = seqM $ (+)
         <$> aggregateModuleEntries aggMod
