@@ -92,7 +92,7 @@ data CostCentreTree = CostCentreTree
   , costCentreParents :: !(IntMap CostCentreNo)
   , costCentreChildren :: !(IntMap (Set CostCentre))
   , costCentreCallSites :: !(Map (Text, Text) (Set CostCentre))
-  , costCentreAggregate :: !(Map (Text, Text) AggregateCostCentre)
+  , costCentreAggregate :: !(Map Text (Map Text AggregateCostCentre))
   } deriving Show
 
 emptyCostCentreTree :: CostCentreTree
@@ -118,3 +118,30 @@ data CallSite cc = CallSite
   , callSiteContribBytes :: !(Maybe Integer)
   -- ^ Number of allocated bytes contributed byt hte caller function
   } deriving Show
+
+data AggregateModule = AggregateModule
+  { aggregateModuleName :: !Text
+  -- ^ Name of the module
+  , aggregateModuleEntries :: !(Maybe Integer)
+  -- ^ Total number of entries to cost centres in the module
+  , aggregateModuleTime :: !Scientific
+  -- ^ Total time spent on cost centres in the module
+  , aggregateModuleAlloc :: !Scientific
+  -- ^ Total allocation on cost centres in the module
+  , aggregateModuleTicks :: !(Maybe Integer)
+  -- ^ Total ticks on cost centres in the module. This number exists only if
+  -- @-P@ or @-Pa@ option is given at run-time.
+  , aggregateModuleBytes :: !(Maybe Integer)
+  -- ^ Total memory allocation on cost centres in the module. This number
+  -- exists only if @-P@ or @-Pa@ option is given at run-time.
+  } deriving (Show, Eq, Ord)
+
+emptyAggregateModule :: Text -> AggregateModule
+emptyAggregateModule name = AggregateModule
+  { aggregateModuleName = name
+  , aggregateModuleEntries = Just 0
+  , aggregateModuleTime = 0
+  , aggregateModuleAlloc = 0
+  , aggregateModuleTicks = Just 0
+  , aggregateModuleBytes = Just 0
+  }
