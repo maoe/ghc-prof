@@ -3,6 +3,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE LambdaCase #-}
 module GHC.Prof.Parser
   ( profile
 
@@ -275,20 +276,32 @@ buildTree = snd . foldl' go (TreePath 0 [], emptyCostCentreTree)
             (costCentreName node, costCentreModule node)
             (Set.singleton node)
             costCentreCallSites
-          , costCentreAggregate = Map.insertWith addCostCentre
-            (costCentreName node, costCentreModule node)
-            (AggregateCostCentre
-              { aggregateCostCentreName = costCentreName node
-              , aggregateCostCentreModule = costCentreModule node
-              , aggregateCostCentreSrc = costCentreSrc node
-              , aggregateCostCentreEntries = Just $! costCentreEntries node
-              , aggregateCostCentreTime = costCentreIndTime node
-              , aggregateCostCentreAlloc = costCentreIndAlloc node
-              , aggregateCostCentreTicks = costCentreTicks node
-              , aggregateCostCentreBytes = costCentreBytes node
-              })
+          , costCentreAggregate = Map.alter
+            (Just . updateCostCentre)
+            (costCentreModule node)
             costCentreAggregate
           }
+        aggregate = AggregateCostCentre
+          { aggregateCostCentreName = costCentreName node
+          , aggregateCostCentreModule = costCentreModule node
+          , aggregateCostCentreSrc = costCentreSrc node
+          , aggregateCostCentreEntries = Just $! costCentreEntries node
+          , aggregateCostCentreTime = costCentreIndTime node
+          , aggregateCostCentreAlloc = costCentreIndAlloc node
+          , aggregateCostCentreTicks = costCentreTicks node
+          , aggregateCostCentreBytes = costCentreBytes node
+          }
+        updateCostCentre
+          :: Maybe (Map.Map Text AggregateCostCentre)
+          -> Map.Map Text AggregateCostCentre
+        updateCostCentre = \case
+          Nothing -> Map.singleton (costCentreName node) aggregate
+          Just costCentreByName ->
+            Map.insertWith
+              addCostCentre
+              (costCentreName node)
+              aggregate
+              costCentreByName
         addCostCentre x y = x
           { aggregateCostCentreEntries = seqM $ (+)
             <$> aggregateCostCentreEntries x
@@ -304,7 +317,6 @@ buildTree = snd . foldl' go (TreePath 0 [], emptyCostCentreTree)
             <$> aggregateCostCentreBytes x
             <*> aggregateCostCentreBytes y
           }
-
 
 howMany :: Parser a -> Parser Int
 howMany p = loop 0

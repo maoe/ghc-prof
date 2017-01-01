@@ -14,6 +14,8 @@ module GHC.Prof
   , aggregateCallSitesOrderBy
   , callSites
   , callSitesOrderBy
+  , aggregateModules
+  , aggregateModulesOrderBy
 
   -- * Types
   , Profile(..)
@@ -23,6 +25,7 @@ module GHC.Prof
   , CostCentre(..)
   , CostCentreNo
   , CallSite(..)
+  , AggregateModule(..)
   ) where
 
 import qualified Data.Attoparsec.Text.Lazy as ATL
