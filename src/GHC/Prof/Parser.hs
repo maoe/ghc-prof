@@ -22,11 +22,12 @@ import Control.Monad
 import Data.Char (isSpace)
 import Data.Foldable (asum, foldl')
 import Data.Maybe
-import Data.Text (Text)
 import Data.Time
-import qualified Data.Set as Set
 
+import Data.Text (Text)
 import Data.Attoparsec.Text as A
+import qualified Data.Set as Set
+import qualified Data.Text as T
 
 import Control.Monad.Extras (seqM)
 import GHC.Prof.Types
@@ -167,7 +168,7 @@ aggregateCostCentre HeaderParams {..} = AggregateCostCentre
   <*> optional decimal <* skipHorizontalSpace -- bytes
   where
     source
-      | headerHasSrc = Just <$> symbol
+      | headerHasSrc = Just <$> sourceSpan
       | otherwise = pure Nothing
 
 costCentres :: Parser CostCentreTree
@@ -181,8 +182,8 @@ costCentre HeaderParams {..} = do
   modName <- symbol; skipHorizontalSpace
   src <- if headerHasSrc
     then do
-      !sym <- symbol
-      return $! Just sym
+      !sym <- sourceSpan
+      return $ Just sym
     else pure Nothing
   skipHorizontalSpace
   no <- decimal; skipHorizontalSpace
@@ -328,6 +329,14 @@ parens p = string "(" *> p <* string ")"
 
 symbol :: Parser Text
 symbol = A.takeWhile $ not . isSpace
+
+sourceSpan :: Parser Text
+sourceSpan = asum
+  [ T.pack <$> angleBrackets
+  , symbol
+  ]
+  where
+    angleBrackets = (:) <$> char '<' <*> manyTill anyChar (char '>')
 
 skipHorizontalSpace :: Parser ()
 skipHorizontalSpace = void $ A.takeWhile isHorizontalSpace
