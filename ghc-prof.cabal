@@ -10,6 +10,9 @@ maintainer: Mitsutoshi Aoe <maoe@foldr.in>
 copyright: Copyright (C) 2013-2017 Mitsutoshi Aoe
 category: Development
 build-type: Simple
+extra-source-files:
+  CHANGELOG.md
+  README.md
 cabal-version: >=1.10
 tested-with: GHC >= 7.6 && <= 8.0.2
 
