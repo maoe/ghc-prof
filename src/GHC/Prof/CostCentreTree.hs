@@ -5,8 +5,8 @@
 module GHC.Prof.CostCentreTree
   ( -- * Cost center breakdown
   -- ** Aggregate cost centres
-    aggregateCostCentres
-  , aggregateCostCentresOrderBy
+    aggregatedCostCentres
+  , aggregatedCostCentresOrderBy
 
   -- ** Cost centre trees
   , costCentres
@@ -26,7 +26,7 @@ module GHC.Prof.CostCentreTree
   , aggregateModulesOrderBy
 
   -- * Low level functions
-  , buildAggregateCostCentresOrderBy
+  , buildAggregatedCostCentresOrderBy
   , buildCostCentresOrderBy
   , buildCallSitesOrderBy
   , buildAggregateCallSitesOrderBy
@@ -58,21 +58,21 @@ import qualified Data.Map as Map
 
 -- | Build a list of cost-centres from a profiling report ordered by the time
 -- spent and the amount of allocation.
-aggregateCostCentres :: Profile -> [AggregateCostCentre]
-aggregateCostCentres = aggregateCostCentresOrderBy sortKey
+aggregatedCostCentres :: Profile -> [AggregatedCostCentre]
+aggregatedCostCentres = aggregatedCostCentresOrderBy sortKey
   where
-    sortKey = aggregateCostCentreTime &&& aggregateCostCentreAlloc
+    sortKey = aggregatedCostCentreTime &&& aggregatedCostCentreAlloc
 
 -- | Build a list of cost-centres from a profling report ordered by the given
 -- key.
-aggregateCostCentresOrderBy
+aggregatedCostCentresOrderBy
   :: Ord a
-  => (AggregateCostCentre -> a)
+  => (AggregatedCostCentre -> a)
   -- ^ Sorting key function
   -> Profile
-  -> [AggregateCostCentre]
-aggregateCostCentresOrderBy sortKey =
-  buildAggregateCostCentresOrderBy sortKey . profileCostCentreTree
+  -> [AggregatedCostCentre]
+aggregatedCostCentresOrderBy sortKey =
+  buildAggregatedCostCentresOrderBy sortKey . profileCostCentreTree
 
 -- | Build a tree of cost-centres from a profiling report.
 costCentres :: Profile -> Maybe (Tree CostCentre)
@@ -102,26 +102,26 @@ aggregateCallSites
   -> Text
   -- ^ Module name
   -> Profile
-  -> Maybe (AggregateCostCentre, [CallSite AggregateCostCentre])
+  -> Maybe (AggregatedCostCentre, [CallSite AggregatedCostCentre])
 aggregateCallSites = aggregateCallSitesOrderBy sortKey
   where
     sortKey = callSiteContribTime &&& callSiteContribAlloc
-      &&& aggregateCostCentreTime . callSiteCostCentre
-      &&& aggregateCostCentreAlloc . callSiteCostCentre
+      &&& aggregatedCostCentreTime . callSiteCostCentre
+      &&& aggregatedCostCentreAlloc . callSiteCostCentre
 
 -- | Build a list of call sites (caller functions of a cost centre) aggregated
 -- by their cost centre names and module names. Call sites are sorted by the
 -- given key function.
 aggregateCallSitesOrderBy
   :: Ord a
-  => (CallSite AggregateCostCentre -> a)
+  => (CallSite AggregatedCostCentre -> a)
   -- ^ Sorting key function
   -> Text
   -- ^ Cost centre name
   -> Text
   -- ^ Module name
   -> Profile
-  -> Maybe (AggregateCostCentre, [CallSite AggregateCostCentre])
+  -> Maybe (AggregatedCostCentre, [CallSite AggregatedCostCentre])
 aggregateCallSitesOrderBy sortKey name modName =
   buildAggregateCallSitesOrderBy sortKey name modName . profileCostCentreTree
 
@@ -133,7 +133,7 @@ callSites
   -> Text
   -- ^ Module name
   -> Profile
-  -> Maybe (AggregateCostCentre, [CallSite CostCentre])
+  -> Maybe (AggregatedCostCentre, [CallSite CostCentre])
 callSites = callSitesOrderBy sortKey
   where
     sortKey = callSiteContribTime &&& callSiteContribAlloc
@@ -152,7 +152,7 @@ callSitesOrderBy
   -> Text
   -- ^ Module name
   -> Profile
-  -> Maybe (AggregateCostCentre, [CallSite CostCentre])
+  -> Maybe (AggregatedCostCentre, [CallSite CostCentre])
 callSitesOrderBy sortKey name modName =
   buildCallSitesOrderBy sortKey name modName . profileCostCentreTree
 
@@ -176,12 +176,12 @@ aggregateModulesOrderBy sortKey =
 
 -----------------------------------------------------------
 
-buildAggregateCostCentresOrderBy
+buildAggregatedCostCentresOrderBy
   :: Ord a
-  => (AggregateCostCentre -> a)
+  => (AggregatedCostCentre -> a)
   -> CostCentreTree
-  -> [AggregateCostCentre]
-buildAggregateCostCentresOrderBy sortKey CostCentreTree {..} =
+  -> [AggregatedCostCentre]
+buildAggregatedCostCentresOrderBy sortKey CostCentreTree {..} =
   sortBy (flip compare `on` sortKey) $
     concatMap Map.elems $ Map.elems $ costCentreAggregate
 
@@ -208,14 +208,14 @@ buildCostCentresOrderBy sortKey CostCentreTree {..} = do
 
 buildAggregateCallSitesOrderBy
   :: Ord a
-  => (CallSite AggregateCostCentre -> a)
+  => (CallSite AggregatedCostCentre -> a)
   -- ^ Sorting key function
   -> Text
   -- ^ Cost centre name
   -> Text
   -- ^ Module name
   -> CostCentreTree
-  -> Maybe (AggregateCostCentre, [CallSite AggregateCostCentre])
+  -> Maybe (AggregatedCostCentre, [CallSite AggregatedCostCentre])
 buildAggregateCallSitesOrderBy sortKey name modName tree@CostCentreTree {..} =
   (,) <$> callee <*> callers
   where
@@ -227,9 +227,9 @@ buildAggregateCallSitesOrderBy sortKey name modName tree@CostCentreTree {..} =
 
 buildAggregateCallSite
   :: CostCentreTree
-  -> Map.Map (Text, Text) (CallSite AggregateCostCentre)
+  -> Map.Map (Text, Text) (CallSite AggregatedCostCentre)
   -> CostCentre
-  -> Maybe (Map.Map (Text, Text) (CallSite AggregateCostCentre))
+  -> Maybe (Map.Map (Text, Text) (CallSite AggregatedCostCentre))
 buildAggregateCallSite CostCentreTree {..} parents CostCentre {..} = do
   parentNo <- IntMap.lookup costCentreNo costCentreParents
   parent <- IntMap.lookup parentNo costCentreNodes
@@ -271,7 +271,7 @@ buildCallSitesOrderBy
   -> Text
   -- ^ Module name
   -> CostCentreTree
-  -> Maybe (AggregateCostCentre, [CallSite CostCentre])
+  -> Maybe (AggregatedCostCentre, [CallSite CostCentre])
 buildCallSitesOrderBy sortKey name modName tree@CostCentreTree {..} =
   (,) <$> callee <*> callers
   where
@@ -311,25 +311,25 @@ buildAggregateModulesOrderBy sortKey CostCentreTree {..} =
       costCentreAggregate
   where
     aggregateModule modName = Map.foldl' add (emptyAggregateModule modName)
-    add aggMod AggregateCostCentre {..} = aggMod
+    add aggMod AggregatedCostCentre {..} = aggMod
       { aggregateModuleEntries = seqM $ (+)
         <$> aggregateModuleEntries aggMod
-        <*> aggregateCostCentreEntries
+        <*> aggregatedCostCentreEntries
       , aggregateModuleTime =
-        aggregateModuleTime aggMod + aggregateCostCentreTime
+        aggregateModuleTime aggMod + aggregatedCostCentreTime
       , aggregateModuleAlloc =
-        aggregateModuleAlloc aggMod + aggregateCostCentreAlloc
+        aggregateModuleAlloc aggMod + aggregatedCostCentreAlloc
       , aggregateModuleTicks = seqM $ (+)
         <$> aggregateModuleTicks aggMod
-        <*> aggregateCostCentreTicks
+        <*> aggregatedCostCentreTicks
       , aggregateModuleBytes = seqM $ (+)
         <$> aggregateModuleBytes aggMod
-        <*> aggregateCostCentreBytes
+        <*> aggregatedCostCentreBytes
       }
 
 lookupAggregate
   :: Text -- ^ Cost centre name
   -> Text -- ^ Module name
-  -> Map.Map Text (Map.Map Text AggregateCostCentre)
-  -> Maybe AggregateCostCentre
+  -> Map.Map Text (Map.Map Text AggregatedCostCentre)
+  -> Maybe AggregatedCostCentre
 lookupAggregate name modName m = Map.lookup modName m >>= Map.lookup name

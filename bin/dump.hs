@@ -22,7 +22,7 @@ main = do
     Left reason -> fail reason
     Right prof -> case optMode opts of
       AggregateMode ->
-        traverse_ (putStrLn . makeAggregateCCName) $ aggregateCostCentres prof
+        traverse_ (putStrLn . makeAggregateCCName) $ aggregatedCostCentres prof
       TreeMode -> case restArgs of
         [] ->
           traverse_ putStrLn $ drawTree . fmap makeCCName <$> costCentres prof
@@ -44,13 +44,13 @@ makeCCName cc = printf "%s.%s:%d (%s,%s,%s,%s)"
   (showScientific $ costCentreInhAlloc cc)
   (showScientific $ costCentreIndAlloc cc)
 
-makeAggregateCCName :: AggregateCostCentre -> String
+makeAggregateCCName :: AggregatedCostCentre -> String
 makeAggregateCCName aggregate = printf
   "%s%%\t%s%%\t%s.%s"
-  (showScientific $ aggregateCostCentreTime aggregate)
-  (showScientific $ aggregateCostCentreAlloc aggregate)
-  (T.unpack $ aggregateCostCentreModule aggregate)
-  (T.unpack $ aggregateCostCentreName aggregate)
+  (showScientific $ aggregatedCostCentreTime aggregate)
+  (showScientific $ aggregatedCostCentreAlloc aggregate)
+  (T.unpack $ aggregatedCostCentreModule aggregate)
+  (T.unpack $ aggregatedCostCentreName aggregate)
 
 showScientific :: Scientific -> String
 showScientific = formatScientific Fixed Nothing

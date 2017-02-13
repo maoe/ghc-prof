@@ -16,7 +16,7 @@ data Profile = Profile
   , profileCommandLine :: !Text
   , profileTotalTime :: !TotalTime
   , profileTotalAlloc :: !TotalAlloc
-  , profileTopCostCentres :: [AggregateCostCentre]
+  , profileTopCostCentres :: [AggregatedCostCentre]
   , profileCostCentreTree :: !CostCentreTree
   } deriving Show
 
@@ -38,23 +38,23 @@ newtype TotalAlloc = TotalAlloc
   -- ^ Total memory allocation in bytes
   } deriving Show
 
-data AggregateCostCentre = AggregateCostCentre
-  { aggregateCostCentreName :: !Text
+data AggregatedCostCentre = AggregatedCostCentre
+  { aggregatedCostCentreName :: !Text
   -- ^ Name of the cost-centre
-  , aggregateCostCentreModule :: !Text
+  , aggregatedCostCentreModule :: !Text
   -- ^ Module name of the cost-centre
-  , aggregateCostCentreSrc :: !(Maybe Text)
+  , aggregatedCostCentreSrc :: !(Maybe Text)
   -- ^ Source location of the cost-centre
-  , aggregateCostCentreEntries :: !(Maybe Integer)
+  , aggregatedCostCentreEntries :: !(Maybe Integer)
   -- ^ Number of entries to the cost-centre
-  , aggregateCostCentreTime :: !Scientific
+  , aggregatedCostCentreTime :: !Scientific
   -- ^ Total time spent in the cost-centre
-  , aggregateCostCentreAlloc :: !Scientific
+  , aggregatedCostCentreAlloc :: !Scientific
   -- ^ Total allocation in the cost-centre
-  , aggregateCostCentreTicks :: !(Maybe Integer)
+  , aggregatedCostCentreTicks :: !(Maybe Integer)
   -- ^ Total ticks in the cost-centre. This number exists only if
   -- @-P@ or @-Pa@ option is given at run-time.
-  , aggregateCostCentreBytes :: !(Maybe Integer)
+  , aggregatedCostCentreBytes :: !(Maybe Integer)
   -- ^ Total memory allocation in the cost-centre. This number
   -- exists only if @-P@ or @-Pa@ option is given at run-time.
   } deriving (Show, Eq, Ord)
@@ -92,7 +92,7 @@ data CostCentreTree = CostCentreTree
   , costCentreParents :: !(IntMap CostCentreNo)
   , costCentreChildren :: !(IntMap (Set CostCentre))
   , costCentreCallSites :: !(Map (Text, Text) (Set CostCentre))
-  , costCentreAggregate :: !(Map Text (Map Text AggregateCostCentre))
+  , costCentreAggregate :: !(Map Text (Map Text AggregatedCostCentre))
   } deriving Show
 
 emptyCostCentreTree :: CostCentreTree
