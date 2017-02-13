@@ -13,7 +13,7 @@ module GHC.Prof.Parser
   , totalTime
   , totalAlloc
   , topCostCentres
-  , aggregateCostCentre
+  , aggregatedCostCentre
   , costCentres
   , costCentre
   ) where
@@ -151,13 +151,13 @@ header = do
   return HeaderParams
     {..}
 
-topCostCentres :: Parser [AggregateCostCentre]
+topCostCentres :: Parser [AggregatedCostCentre]
 topCostCentres = do
   params <- header; skipSpace
-  aggregateCostCentre params `sepBy1` endOfLine
+  aggregatedCostCentre params `sepBy1` endOfLine
 
-aggregateCostCentre :: HeaderParams -> Parser AggregateCostCentre
-aggregateCostCentre HeaderParams {..} = AggregateCostCentre
+aggregatedCostCentre :: HeaderParams -> Parser AggregatedCostCentre
+aggregatedCostCentre HeaderParams {..} = AggregatedCostCentre
   <$> symbol <* skipHorizontalSpace -- name
   <*> symbol <* skipHorizontalSpace -- module
   <*> source <* skipHorizontalSpace -- src
@@ -282,19 +282,19 @@ buildTree = snd . foldl' go (TreePath 0 [], emptyCostCentreTree)
             (costCentreModule node)
             costCentreAggregate
           }
-        aggregate = AggregateCostCentre
-          { aggregateCostCentreName = costCentreName node
-          , aggregateCostCentreModule = costCentreModule node
-          , aggregateCostCentreSrc = costCentreSrc node
-          , aggregateCostCentreEntries = Just $! costCentreEntries node
-          , aggregateCostCentreTime = costCentreIndTime node
-          , aggregateCostCentreAlloc = costCentreIndAlloc node
-          , aggregateCostCentreTicks = costCentreTicks node
-          , aggregateCostCentreBytes = costCentreBytes node
+        aggregate = AggregatedCostCentre
+          { aggregatedCostCentreName = costCentreName node
+          , aggregatedCostCentreModule = costCentreModule node
+          , aggregatedCostCentreSrc = costCentreSrc node
+          , aggregatedCostCentreEntries = Just $! costCentreEntries node
+          , aggregatedCostCentreTime = costCentreIndTime node
+          , aggregatedCostCentreAlloc = costCentreIndAlloc node
+          , aggregatedCostCentreTicks = costCentreTicks node
+          , aggregatedCostCentreBytes = costCentreBytes node
           }
         updateCostCentre
-          :: Maybe (Map.Map Text AggregateCostCentre)
-          -> Map.Map Text AggregateCostCentre
+          :: Maybe (Map.Map Text AggregatedCostCentre)
+          -> Map.Map Text AggregatedCostCentre
         updateCostCentre = \case
           Nothing -> Map.singleton (costCentreName node) aggregate
           Just costCentreByName ->
@@ -304,19 +304,19 @@ buildTree = snd . foldl' go (TreePath 0 [], emptyCostCentreTree)
               aggregate
               costCentreByName
         addCostCentre x y = x
-          { aggregateCostCentreEntries = seqM $ (+)
-            <$> aggregateCostCentreEntries x
-            <*> aggregateCostCentreEntries y
-          , aggregateCostCentreTime =
-            aggregateCostCentreTime x + aggregateCostCentreTime y
-          , aggregateCostCentreAlloc =
-            aggregateCostCentreAlloc x + aggregateCostCentreAlloc y
-          , aggregateCostCentreTicks = seqM $ (+)
-            <$> aggregateCostCentreTicks x
-            <*> aggregateCostCentreTicks y
-          , aggregateCostCentreBytes = seqM $ (+)
-            <$> aggregateCostCentreBytes x
-            <*> aggregateCostCentreBytes y
+          { aggregatedCostCentreEntries = seqM $ (+)
+            <$> aggregatedCostCentreEntries x
+            <*> aggregatedCostCentreEntries y
+          , aggregatedCostCentreTime =
+            aggregatedCostCentreTime x + aggregatedCostCentreTime y
+          , aggregatedCostCentreAlloc =
+            aggregatedCostCentreAlloc x + aggregatedCostCentreAlloc y
+          , aggregatedCostCentreTicks = seqM $ (+)
+            <$> aggregatedCostCentreTicks x
+            <*> aggregatedCostCentreTicks y
+          , aggregatedCostCentreBytes = seqM $ (+)
+            <$> aggregatedCostCentreBytes x
+            <*> aggregatedCostCentreBytes y
           }
 
 howMany :: Parser a -> Parser Int
