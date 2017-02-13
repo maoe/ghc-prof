@@ -14,6 +14,7 @@ module GHC.Prof
   , aggregateCallSitesOrderBy
   , callSites
   , callSitesOrderBy
+  , callStack
   , aggregateModules
   , aggregateModulesOrderBy
 

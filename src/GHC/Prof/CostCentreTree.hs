@@ -21,6 +21,9 @@ module GHC.Prof.CostCentreTree
   , callSites
   , callSitesOrderBy
 
+  -- ** Call stack
+  , callStack
+
   -- * Module breakdown
   , aggregateModules
   , aggregateModulesOrderBy
@@ -29,6 +32,7 @@ module GHC.Prof.CostCentreTree
   , buildAggregatedCostCentresOrderBy
   , buildCostCentresOrderBy
   , buildCallSitesOrderBy
+  , buildCallStack
   , buildAggregateCallSitesOrderBy
   ) where
 import Control.Applicative
@@ -155,6 +159,9 @@ callSitesOrderBy
   -> Maybe (AggregatedCostCentre, [CallSite CostCentre])
 callSitesOrderBy sortKey name modName =
   buildCallSitesOrderBy sortKey name modName . profileCostCentreTree
+
+callStack :: CostCentreNo -> Profile -> [CostCentre]
+callStack ccNo = buildCallStack ccNo . profileCostCentreTree
 
 -- | Break down aggregate cost centres by module sorted by total time and
 -- allocation.
@@ -296,6 +303,14 @@ buildCallSite CostCentreTree {..} CostCentre {..} = do
     , callSiteContribTicks = costCentreTicks
     , callSiteContribBytes = costCentreBytes
     }
+
+buildCallStack :: CostCentreNo -> CostCentreTree -> [CostCentre]
+buildCallStack ccNo CostCentreTree {..} = unfoldr phi ccNo
+  where
+    phi ccNo' = do
+      !parentNo <- IntMap.lookup ccNo' costCentreParents
+      !parentCC <- IntMap.lookup parentNo costCentreNodes
+      return (parentCC, parentNo)
 
 buildAggregateModulesOrderBy
   :: Ord a
