@@ -13,6 +13,8 @@ build-type: Simple
 extra-source-files:
   CHANGELOG.md
   README.md
+data-files:
+  tests/reports/*.prof
 cabal-version: >=1.10
 tested-with: GHC >= 7.6 && <= 8.0.2
 

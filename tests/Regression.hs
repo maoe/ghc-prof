@@ -26,13 +26,18 @@ import Control.Exception
 #endif
 
 main :: IO ()
-main = withSystemTempDirectory "test" $ \dir -> withCurrentDirectory dir $
-  defaultMain $ testCaseSteps "Regression tests" $ \step -> do
-    step "Generating profiling reports"
-    profiles <- generateProfiles
-    for_ profiles $ \prof -> do
-      step $ "Parsing " ++ prof
-      assertProfile prof
+main = do
+  projectRoot <- getCurrentDirectory
+  withSystemTempDirectory "test" $ \dir -> withCurrentDirectory dir $
+    defaultMain $ testCaseSteps "Regression tests" $ \step -> do
+      step "Generating profiling reports"
+      generated <- generateProfiles
+      let reportsDir = projectRoot </> "tests" </> "reports"
+      step $ "Scanning profiling reports in " ++ reportsDir
+      scanned <- scanProfiles reportsDir
+      for_ (generated ++ scanned) $ \prof -> do
+        step $ "Parsing " ++ prof
+        assertProfile prof
 
 generateProfiles :: IO [FilePath]
 generateProfiles = do
@@ -56,6 +61,11 @@ profilingFlags =
   , ("detailed", "-P")
   , ("full", "-pa")
   ]
+
+scanProfiles :: FilePath -> IO [FilePath]
+scanProfiles root =
+  map (root </>) . filter (\path -> takeExtension path == ".prof")
+    <$> listDirectory root
 
 assertProfile :: FilePath -> Assertion
 assertProfile path = do
