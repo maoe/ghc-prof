@@ -19,7 +19,7 @@ module GHC.Prof.Parser
   ) where
 import Control.Applicative
 import Control.Monad
-import Data.Char (isSpace)
+import Data.Char (isDigit, isSpace)
 import Data.Foldable (asum, foldl')
 import Data.Maybe
 import Data.Time
@@ -28,6 +28,7 @@ import Data.Text (Text)
 import Data.Attoparsec.Text as A
 import qualified Data.Set as Set
 import qualified Data.Text as T
+import qualified Data.Text.Read as TR
 
 import Control.Monad.Extras (seqM)
 import GHC.Prof.Types
@@ -177,22 +178,10 @@ costCentres = do
   costCentreTree params
 
 costCentre :: HeaderParams -> Parser CostCentre
-costCentre HeaderParams {..} = do
+costCentre params = do
   name <- symbol; skipHorizontalSpace
-  modName <- symbol; skipHorizontalSpace
-  src <- if headerHasSrc
-    then do
-      !sym <- sourceSpan
-      return $ Just sym
-    else pure Nothing
-  skipHorizontalSpace
-  no <- decimal; skipHorizontalSpace
-  entries <- decimal; skipHorizontalSpace
-  indTime <- scientific; skipHorizontalSpace
-  indAlloc <- scientific; skipHorizontalSpace
-  inhTime <- scientific; skipHorizontalSpace
-  inhAlloc <- scientific; skipHorizontalSpace
-  optInfo <- optional optionalInfo
+  (modName, src, no, (entries, indTime, indAlloc, inhTime, inhAlloc, optInfo))
+    <- validCostCentre params <|> jammedCostCentre
   return $! CostCentre
     { costCentreName = name
     , costCentreModule = modName
@@ -207,11 +196,40 @@ costCentre HeaderParams {..} = do
     , costCentreBytes = snd <$> optInfo
     }
   where
-    optionalInfo = do
-      !ticks <- decimal
+    validCostCentre HeaderParams {..} = do
+      modName <- symbol; skipHorizontalSpace
+      src <- if headerHasSrc
+        then do
+          !sym <- sourceSpan
+          return $ Just sym
+        else pure Nothing
       skipHorizontalSpace
-      !bytes <- decimal
-      return (ticks, bytes)
+      no <- decimal; skipHorizontalSpace
+      vals <- metrics
+      return (modName, src, no, vals)
+    -- Workaround for https://ghc.haskell.org/trac/ghc/ticket/8811.
+    -- This bug had been fixed before the SRC column was implemented so
+    -- @sourceSpan@ isn't parsed here.
+    -- Caveat: This parser can be confused if module name contains digits and
+    -- the digits are jammed with the cost centre number. In such cases, all
+    -- the digits are parsed as a number of entries.
+    jammedCostCentre = do
+      jammed <- symbol; skipHorizontalSpace
+      let modName = T.dropWhileEnd isDigit jammed
+      no <- either fail (return . fst) $ TR.decimal $ T.takeWhileEnd isDigit jammed
+      vals <- metrics
+      return (modName, Nothing, no, vals)
+    metrics = do
+      entries <- decimal; skipHorizontalSpace
+      indTime <- scientific; skipHorizontalSpace
+      indAlloc <- scientific; skipHorizontalSpace
+      inhTime <- scientific; skipHorizontalSpace
+      inhAlloc <- scientific; skipHorizontalSpace
+      optInfo <- optional $ do
+        !ticks <- decimal; skipHorizontalSpace
+        !bytes <- decimal
+        return (ticks, bytes)
+      return (entries, indTime, indAlloc, inhTime, inhAlloc, optInfo)
 
 costCentreTree :: HeaderParams -> Parser CostCentreTree
 costCentreTree params = buildTree <$> costCentreList
