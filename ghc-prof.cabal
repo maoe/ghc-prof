@@ -68,7 +68,7 @@ test-suite regression
     , filepath
     , ghc-prof
     , process
-    , tasty < 0.12
+    , tasty < 0.13
     , tasty-hunit >= 0.9.1 && < 0.10
     , temporary
     , text
