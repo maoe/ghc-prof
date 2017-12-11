@@ -69,7 +69,7 @@ test-suite regression
     , ghc-prof
     , process
     , tasty < 0.13
-    , tasty-hunit >= 0.9.1 && < 0.10
+    , tasty-hunit >= 0.9.1 && < 0.11
     , temporary
     , text
   ghc-options: -Wall
