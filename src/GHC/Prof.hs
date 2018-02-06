@@ -34,6 +34,7 @@ import qualified Data.Attoparsec.Text as ATS
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text as TS
 
+import Control.Applicative ((<*))
 import GHC.Prof.CostCentreTree
 import GHC.Prof.Parser (profile)
 import GHC.Prof.Types
