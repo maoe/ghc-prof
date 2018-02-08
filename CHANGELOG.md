@@ -1,5 +1,10 @@
 # Revision history for ghc-prof
 
+## v1.4.1 - 2018-02-08
+
+* Relax upper version bound for tasty
+* Add a strict decoder (#13)
+
 ## v1.4.0.4 - 2017-12-12
 
 * Relax upper version bound for tasty-hunit

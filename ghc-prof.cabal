@@ -1,5 +1,5 @@
 name: ghc-prof
-version: 1.4.0.4
+version: 1.4.1
 synopsis: Library for parsing GHC time and allocation profiling reports
 description: Library for parsing GHC time and allocation profiling reports
 homepage: https://github.com/maoe/ghc-prof
