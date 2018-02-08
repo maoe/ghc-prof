@@ -1,5 +1,6 @@
 module GHC.Prof
   ( decode
+  , decode'
 
   -- * Parser
   , profile
@@ -29,8 +30,11 @@ module GHC.Prof
   ) where
 
 import qualified Data.Attoparsec.Text.Lazy as ATL
+import qualified Data.Attoparsec.Text as AT
 import qualified Data.Text.Lazy as TL
+import qualified Data.Text as T
 
+import Control.Applicative ((<*))
 import GHC.Prof.CostCentreTree
 import GHC.Prof.Parser (profile)
 import GHC.Prof.Types
@@ -40,3 +44,7 @@ decode :: TL.Text -> Either String Profile
 decode text = case ATL.parse profile text of
   ATL.Fail _unconsumed _contexts reason -> Left reason
   ATL.Done _unconsumed prof -> Right prof
+
+-- | Decode a GHC time allocation profiling report from a strict 'AT.Text'
+decode' :: T.Text -> Either String Profile
+decode' text = AT.parseOnly (profile <* AT.endOfInput) text
