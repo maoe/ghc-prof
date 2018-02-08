@@ -18,6 +18,7 @@ import Test.Tasty.HUnit
 import qualified Data.Attoparsec.Text.Lazy as ATL
 import qualified Data.Set as Set
 import qualified Data.Text.Lazy.IO as TL
+import qualified Data.Text.IO as T
 
 import GHC.Prof
 
@@ -33,6 +34,11 @@ main = withSystemTempDirectory "test" $ \dir -> withCurrentDirectory dir $
     for_ profiles $ \prof -> do
       step $ "Parsing " ++ prof
       assertProfile prof
+    for_ profiles $ \prof -> do
+      step $ "Decode  " ++ prof
+      assertDecode prof
+      step $ "Decode' " ++ prof
+      assertDecode' prof
 
 generateProfiles :: IO [FilePath]
 generateProfiles = do
@@ -57,17 +63,35 @@ profilingFlags =
   , ("full", "-pa")
   ]
 
+caseStudy :: Profile -> IO ()
+caseStudy prof = do
+  let actual = Set.fromList $ map Similar $ aggregatedCostCentres prof
+      expected = Set.fromList $ map Similar $ profileTopCostCentres prof
+  assertBool
+    ("Missing cost centre(s): " ++ show (Set.difference expected actual)) $
+      Set.isSubsetOf expected actual
+
+
 assertProfile :: FilePath -> Assertion
 assertProfile path = do
   text <- TL.readFile path
   case ATL.parse profile text of
-    ATL.Done _ prof -> do
-      let actual = Set.fromList $ map Similar $ aggregatedCostCentres prof
-          expected = Set.fromList $ map Similar $ profileTopCostCentres prof
-      assertBool
-        ("Missing cost centre(s): " ++ show (Set.difference expected actual)) $
-          Set.isSubsetOf expected actual
+    ATL.Done _ prof -> caseStudy prof
     ATL.Fail _ _ reason -> assertFailure reason
+
+assertDecode :: FilePath -> Assertion
+assertDecode path = do
+  text <- TL.readFile path
+  case decode text of
+    Right prof -> caseStudy prof
+    Left reason -> assertFailure reason
+
+assertDecode' :: FilePath -> Assertion
+assertDecode' path = do
+  text <- T.readFile path
+  case decode' text of
+    Right prof -> caseStudy prof
+    Left reason -> assertFailure reason
 
 newtype Similar = Similar AggregatedCostCentre
 

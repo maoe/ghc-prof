@@ -1,8 +1,9 @@
 .DS_Store
 /.cabal-sandbox/
 /.stack-work/
-/cabal.project.local
+/cabal.project.local*
 /cabal.sandbox.config
 /dist-newstyle/
 /dist/
 /ghc-profiling.sublime-*
+.ghc.*
