@@ -18,7 +18,7 @@ import Test.Tasty.HUnit
 import qualified Data.Attoparsec.Text.Lazy as ATL
 import qualified Data.Set as Set
 import qualified Data.Text.Lazy.IO as TL
-import qualified Data.Text.IO as TS
+import qualified Data.Text.IO as T
 
 import GHC.Prof
 
@@ -88,7 +88,7 @@ assertDecode path = do
 
 assertDecode' :: FilePath -> Assertion
 assertDecode' path = do
-  text <- TS.readFile path
+  text <- T.readFile path
   case decode' text of
     Right prof -> caseStudy prof
     Left reason -> assertFailure reason
