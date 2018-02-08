@@ -6,3 +6,4 @@
 /dist-newstyle/
 /dist/
 /ghc-profiling.sublime-*
+.ghc.*
