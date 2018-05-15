@@ -1,5 +1,5 @@
 name: ghc-prof
-version: 1.4.1.1
+version: 1.4.1.2
 synopsis: Library for parsing GHC time and allocation profiling reports
 description: ghc-prof is a library for parsing GHC time and allocation profiling reports.
 homepage: https://github.com/maoe/ghc-prof
@@ -68,7 +68,7 @@ test-suite regression
     , filepath
     , ghc-prof
     , process
-    , tasty < 1.1
+    , tasty < 1.2
     , tasty-hunit >= 0.9.1 && < 0.11
     , temporary
     , text
