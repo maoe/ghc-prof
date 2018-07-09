@@ -1,5 +1,9 @@
 # Revision history for ghc-prof
 
+## v1.4.1.3 - 2018-07-09
+
+* Relax upper version bound for containers
+
 ## v1.4.1.2 - 2018-05-15
 
 * Relax upper version bound for tasty
