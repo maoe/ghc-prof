@@ -7,7 +7,8 @@
 [![Build Status](https://travis-ci.org/maoe/ghc-prof.svg?branch=master)](https://travis-ci.org/maoe/ghc-prof)
 [![Gitter](https://img.shields.io/gitter/room/maoe/ghc-prof.svg?maxAge=2592000)](https://gitter.im/maoe/ghc-prof)
 
-## Applications
+## Applications that use this library
 
-* [profiteur](https://hackage.haskell.org/package/profiteur)
-* [viewprof](https://hackage.haskell.org/package/viewprof)
+* [profiteur: Treemap visualiser for GHC prof files](https://hackage.haskell.org/package/profiteur)
+* [viewprof: Text-based interactive GHC .prof viewer](https://hackage.haskell.org/package/viewprof)
+* [profiterole: Restructure GHC profile reports](https://hackage.haskell.org/package/profiterole)
