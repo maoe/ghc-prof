@@ -1,0 +1,85 @@
+diff --git a/.travis.yml b/.travis.yml
+index c0424c9..1177c5a 100644
+--- a/.travis.yml
++++ b/.travis.yml
+@@ -27,55 +27,55 @@ before_cache:
+ matrix:
+   include:
+     - compiler: ghc-8.8.1
+-      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-8.8.1","cabal-install-3.0"]}}
++      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-8.8.1","ghc-8.8.1-prof","cabal-install-3.0"]}}
+     - compiler: ghc-8.6.5
+-      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-8.6.5","cabal-install-3.0"]}}
++      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-8.6.5","ghc-8.6.5-prof","cabal-install-3.0"]}}
+     - compiler: ghc-8.6.4
+-      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-8.6.4","cabal-install-3.0"]}}
++      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-8.6.4","ghc-8.6.4-prof","cabal-install-3.0"]}}
+     - compiler: ghc-8.6.3
+-      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-8.6.3","cabal-install-3.0"]}}
++      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-8.6.3","ghc-8.6.3-prof","cabal-install-3.0"]}}
+     - compiler: ghc-8.6.2
+-      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-8.6.2","cabal-install-3.0"]}}
++      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-8.6.2","ghc-8.6.2-prof","cabal-install-3.0"]}}
+     - compiler: ghc-8.6.1
+-      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-8.6.1","cabal-install-3.0"]}}
++      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-8.6.1","ghc-8.6.1-prof","cabal-install-3.0"]}}
+     - compiler: ghc-8.4.4
+-      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-8.4.4","cabal-install-3.0"]}}
++      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-8.4.4","ghc-8.4.4-prof","cabal-install-3.0"]}}
+     - compiler: ghc-8.4.3
+-      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-8.4.3","cabal-install-3.0"]}}
++      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-8.4.3","ghc-8.4.3-prof","cabal-install-3.0"]}}
+     - compiler: ghc-8.4.2
+-      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-8.4.2","cabal-install-3.0"]}}
++      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-8.4.2","ghc-8.4.2-prof","cabal-install-3.0"]}}
+     - compiler: ghc-8.4.1
+-      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-8.4.1","cabal-install-3.0"]}}
++      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-8.4.1","ghc-8.4.1-prof","cabal-install-3.0"]}}
+     - compiler: ghc-8.2.2
+-      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-8.2.2","cabal-install-3.0"]}}
++      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-8.2.2","ghc-8.2.2-prof","cabal-install-3.0"]}}
+     - compiler: ghc-8.2.1
+-      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-8.2.1","cabal-install-3.0"]}}
++      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-8.2.1","ghc-8.2.1-prof","cabal-install-3.0"]}}
+     - compiler: ghc-8.0.2
+-      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-8.0.2","cabal-install-3.0"]}}
++      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-8.0.2","ghc-8.0.2-prof","cabal-install-3.0"]}}
+     - compiler: ghc-8.0.1
+-      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-8.0.1","cabal-install-3.0"]}}
++      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-8.0.1","ghc-8.0.1-prof","cabal-install-3.0"]}}
+     - compiler: ghc-7.10.3
+-      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-7.10.3","cabal-install-3.0"]}}
++      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-7.10.3","ghc-7.10.3-prof","cabal-install-3.0"]}}
+     - compiler: ghc-7.10.2
+-      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-7.10.2","cabal-install-3.0"]}}
++      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-7.10.2","ghc-7.10.2-prof","cabal-install-3.0"]}}
+     - compiler: ghc-7.10.1
+-      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-7.10.1","cabal-install-3.0"]}}
++      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-7.10.1","ghc-7.10.1-prof","cabal-install-3.0"]}}
+     - compiler: ghc-7.8.4
+-      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-7.8.4","cabal-install-3.0"]}}
++      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-7.8.4","ghc-7.8.4-prof","cabal-install-3.0"]}}
+     - compiler: ghc-7.8.3
+-      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-7.8.3","cabal-install-3.0"]}}
++      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-7.8.3","ghc-7.8.3-prof","cabal-install-3.0"]}}
+     - compiler: ghc-7.8.2
+-      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-7.8.2","cabal-install-3.0"]}}
++      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-7.8.2","ghc-7.8.2-prof","cabal-install-3.0"]}}
+     - compiler: ghc-7.8.1
+-      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-7.8.1","cabal-install-3.0"]}}
++      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-7.8.1","ghc-7.8.1-prof","cabal-install-3.0"]}}
+     - compiler: ghc-7.6.3
+-      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-7.6.3","cabal-install-3.0"]}}
++      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-7.6.3","ghc-7.6.3-prof","cabal-install-3.0"]}}
+     - compiler: ghc-7.6.2
+-      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-7.6.2","cabal-install-3.0"]}}
++      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-7.6.2","ghc-7.6.2-prof","cabal-install-3.0"]}}
+     - compiler: ghc-7.6.1
+-      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-7.6.1","cabal-install-3.0"]}}
++      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-7.6.1","ghc-7.6.1-prof","cabal-install-3.0"]}}
+     - compiler: ghc-head
+-      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-head","cabal-install-head"]}}
++      addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-head","ghc-head-prof","cabal-install-head"]}}
+   allow_failures:
+     - compiler: ghc-head
+ before_install:

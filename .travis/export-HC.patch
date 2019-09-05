@@ -1,0 +1,13 @@
+diff --git a/.travis.yml b/.travis.yml
+index 77f0247..a535ebe 100644
+--- a/.travis.yml
++++ b/.travis.yml
+@@ -79,7 +79,7 @@ matrix:
+   allow_failures:
+     - compiler: ghc-head
+ before_install:
+-  - HC=$(echo "/opt/$CC/bin/ghc" | sed 's/-/\//')
++  - export HC=$(echo "/opt/$CC/bin/ghc" | sed 's/-/\//')
+   - WITHCOMPILER="-w $HC"
+   - HADDOCK=$(echo "/opt/$CC/bin/haddock" | sed 's/-/\//')
+   - HCPKG="$HC-pkg"
