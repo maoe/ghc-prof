@@ -29,7 +29,7 @@ library
   other-modules:
     Control.Monad.Extras
   build-depends:
-      base >= 4.6 && < 4.13
+      base >= 4.6 && < 4.14
     , attoparsec < 0.14
     , containers >= 0.5 && < 0.7
     , scientific < 0.4
