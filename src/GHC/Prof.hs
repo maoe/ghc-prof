@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 module GHC.Prof
   ( decode
   , decode'
@@ -29,12 +30,15 @@ module GHC.Prof
   , AggregateModule(..)
   ) where
 
+#if !MIN_VERSION_base(4, 13, 0)
+import Control.Applicative ((<*))
+#endif
+
 import qualified Data.Attoparsec.Text.Lazy as ATL
 import qualified Data.Attoparsec.Text as AT
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text as T
 
-import Control.Applicative ((<*))
 import GHC.Prof.CostCentreTree
 import GHC.Prof.Parser (profile)
 import GHC.Prof.Types

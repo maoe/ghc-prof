@@ -7,6 +7,7 @@ import Data.Foldable
 import Data.Monoid
 import Data.Traversable
 import System.Directory
+import System.Environment
 import System.FilePath
 import System.IO
 import Prelude
@@ -49,12 +50,25 @@ generateProfiles = do
       , "fib n = fibs !! n"
       , "fibs = 0:1:zipWith (+) fibs (tail fibs)"
       ]
-  void $ readProcess "ghc" ["-prof", "-rtsopts", "-fforce-recomp", "hello.hs"] ""
+  ghc <- findGhc
+  void $ readProcess ghc ["-prof", "-rtsopts", "-fforce-recomp", "hello.hs"] ""
   for profilingFlags $ \(name, flag) -> do
     void $ readProcess "./hello" ["+RTS", flag, "-RTS"] ""
     let profName = "hello" <.> name <.> "prof"
     renameFile "hello.prof" profName
     return profName
+
+findGhc :: IO String
+findGhc = Prelude.foldr go (fail "cannot find a GHC")
+  [ lookupEnv "HC"
+  , findExecutable "ghc"
+  ]
+  where
+    go act next = do
+      r <- act
+      case r of
+        Just path -> return path
+        Nothing -> next
 
 profilingFlags :: [(String, String)]
 profilingFlags =
