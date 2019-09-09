@@ -1,5 +1,10 @@
 # Revision history for ghc-prof
 
+## v1.4.1.6 - 2019-09-09
+
+* Relax upper version bound for base
+* Test with newer versions of GHC
+
 ## v1.4.1.5 - 2018-12-20
 
 * Relax upper version bound for tasty
