@@ -1,5 +1,9 @@
 # Revision history for ghc-prof
 
+## v1.4.1.7 - 2020-04-04
+
+* Relax upper version bound for base to support GHC 8.10.1
+
 ## v1.4.1.6 - 2019-09-09
 
 * Relax upper version bound for base
