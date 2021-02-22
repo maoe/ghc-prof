@@ -80,6 +80,13 @@ jobs:
           cabal-version: latest
         env:
           GHC_VERSION: ${{ matrix.ghc }}
+      - name: Install profiling libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends gnupg ca-certificates dirmngr curl git software-properties-common
+          sudo apt-add-repository -y 'ppa:hvr/ghc'
+          sudo apt-get update
+          sudo apt-get install -y ghc-${{ matrix.ghc }}-prof
       - name: Set PATH and environment variables
         run: |
           echo "$HOME/.cabal/bin" >> $GITHUB_PATH
