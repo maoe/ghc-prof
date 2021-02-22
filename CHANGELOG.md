@@ -1,5 +1,10 @@
 # Revision history for ghc-prof
 
+## v1.4.1.8 - 2021-02-23
+
+* Relax upper version bounds for base and tasty
+* Switch from Travis CI to GitHub Actions
+
 ## v1.4.1.7 - 2020-04-04
 
 * Relax upper version bound for base to support GHC 8.10.1
