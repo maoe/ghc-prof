@@ -52,7 +52,7 @@ library
     Control.Monad.Extras
   build-depends:
       base >= 4.6 && < 4.16
-    , attoparsec < 0.14
+    , attoparsec < 0.15
     , containers >= 0.5 && < 0.7
     , scientific < 0.4
     , text
