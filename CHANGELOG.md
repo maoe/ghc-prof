@@ -1,5 +1,9 @@
 # Revision history for ghc-prof
 
+## v1.4.1.9 - 2021-07-16
+
+* Allow attoparsec-0.14 (#20)
+
 ## v1.4.1.8 - 2021-02-23
 
 * Relax upper version bounds for base and tasty
