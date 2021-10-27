@@ -83,7 +83,7 @@ test-suite regression
   hs-source-dirs: tests
   main-is: Regression.hs
   build-depends:
-      attoparsec >= 0.10 && < 0.14
+      attoparsec >= 0.10
     , base
     , containers
     , directory
