@@ -1,6 +1,6 @@
 cabal-version: 2.4
 name: ghc-prof
-version: 1.4.1.9
+version: 1.4.1.10
 synopsis: Library for parsing GHC time and allocation profiling reports
 description: ghc-prof is a library for parsing GHC time and allocation profiling reports.
 homepage: https://github.com/maoe/ghc-prof
@@ -83,7 +83,7 @@ test-suite regression
   hs-source-dirs: tests
   main-is: Regression.hs
   build-depends:
-      attoparsec >= 0.10 && < 0.14
+      attoparsec >= 0.10
     , base
     , containers
     , directory
