@@ -1,5 +1,9 @@
 # Revision history for ghc-prof
 
+## v1.4.1.10 - 2021-10-27
+
+* Actually allow attoparsec-0.14 by removing the upper version bound in test:regression
+
 ## v1.4.1.9 - 2021-07-16
 
 * Allow attoparsec-0.14 (#20)
