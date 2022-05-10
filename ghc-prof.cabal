@@ -37,6 +37,9 @@ tested-with: GHC == 7.6.3
   || == 8.10.3
   || == 8.10.4
   || == 9.0.1
+  || == 9.0.2
+  || == 9.2.1
+  || == 9.2.2
 
 flag dump
   description: Build the executable "dump"
