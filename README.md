@@ -12,3 +12,4 @@
 * [profiteur: Treemap visualiser for GHC prof files](https://hackage.haskell.org/package/profiteur)
 * [viewprof: Text-based interactive GHC .prof viewer](https://hackage.haskell.org/package/viewprof)
 * [profiterole: Restructure GHC profile reports](https://hackage.haskell.org/package/profiterole)
+* [ghcprofview-hs: GTK3-based profile report viewer](https://github.com/portnov/ghcprofview-hs)
