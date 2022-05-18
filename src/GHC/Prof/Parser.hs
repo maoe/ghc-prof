@@ -17,7 +17,7 @@ module GHC.Prof.Parser
   , costCentres
   , costCentre
   ) where
-import Control.Applicative
+import Control.Applicative (Alternative((<|>)), optional)
 import Control.Monad
 import Data.Char (isDigit, isSpace)
 import Data.Foldable (asum, foldl')
