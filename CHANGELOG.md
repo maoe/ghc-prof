@@ -1,5 +1,9 @@
 # Revision history for ghc-prof
 
+## v1.4.1.12 - 2022-12-06
+
+* Bump base to compile with GHC 9.4 ([#23](https://github.com/maoe/ghc-prof/pull/23))
+
 ## v1.4.1.11 - 2022-05-18
 
 * Add ghcprofview-hs to the list of applications that use ghc-prof ([#21](https://github.com/maoe/ghc-prof/pull/21))
