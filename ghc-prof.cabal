@@ -40,6 +40,7 @@ tested-with: GHC == 8.0.2
   || == 9.2.1
   || == 9.2.2
   || == 9.4.3
+  || == 9.6.3
 
 flag dump
   description: Build the executable "dump"
@@ -54,7 +55,7 @@ library
   other-modules:
     Control.Monad.Extras
   build-depends:
-      base >= 4.6 && < 4.18
+      base >= 4.6 && < 4.19
     , attoparsec < 0.15
     , containers >= 0.5 && < 0.7
     , scientific < 0.4
