@@ -1,5 +1,9 @@
 # Revision history for ghc-prof
 
+## v1.4.1.13 - 2025-04-14
+
+* Bump base upper bound so we can compile under GHC 9.6.3 ([#24](https://github.com/maoe/ghc-prof/pull/24))
+
 ## v1.4.1.12 - 2022-12-06
 
 * Bump base to compile with GHC 9.4 ([#23](https://github.com/maoe/ghc-prof/pull/23))
