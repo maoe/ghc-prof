@@ -1,6 +1,6 @@
 cabal-version: 2.4
 name: ghc-prof
-version: 1.4.1.12
+version: 1.4.1.13
 synopsis: Library for parsing GHC time and allocation profiling reports
 description: ghc-prof is a library for parsing GHC time and allocation profiling reports.
 homepage: https://github.com/maoe/ghc-prof
@@ -8,7 +8,7 @@ license: BSD-3-Clause
 license-file: LICENSE
 author: Mitsutoshi Aoe
 maintainer: Mitsutoshi Aoe <me@maoe.name>
-copyright: Copyright (C) 2013-2022 Mitsutoshi Aoe
+copyright: Copyright (C) 2013-2025 Mitsutoshi Aoe
 category: Development
 build-type: Simple
 extra-source-files:
